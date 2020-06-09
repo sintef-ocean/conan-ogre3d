@@ -38,6 +38,7 @@ jobs:
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0
           conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
+          conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
       - name: Conan create
         run: |
           conan create -s build_type=${{ matrix.build_type }} -s compiler.toolset=${{ matrix.compiler_toolset }} -s compiler.version=${{ matrix.compiler_version }} -b missing . sintef/stable
