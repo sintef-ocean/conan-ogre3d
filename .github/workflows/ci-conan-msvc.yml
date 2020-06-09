@@ -1,0 +1,47 @@
+name: MSVC Conan
+
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+env:
+  SINTEF_REFERENCE: "ogre3d*"
+  SINTEF_CONAN_CLASS: "Ogre3dConan"
+  CONAN_UPLOAD: "https://api.bintray.com/conan/sintef-ocean/conan"
+  CONAN_PASSWORD_SINTEF: ${{ secrets.BINTRAY_API_KEY }}
+  CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.BINTRAY_USER }}
+  CONAN_NON_INTERACTIVE: True
+  CONAN_USE_ALWAYS_SHORT_PATHS: True
+
+jobs:
+  conan-with-msvc:
+    name: Conan
+    runs-on: ${{ matrix.os }}
+    env:
+      CONAN_USER_HOME_SHORT: C:\c
+      CONAN_USE_ALWAYS_SHORT_PATHS: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2019]
+        build_type: [Debug, Release]
+        compiler_version: [16]
+        compiler_toolset: [v141, v142]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          pip3 install --upgrade setuptools pip
+          pip3 install conan requests
+          pip3 install conan_package_tools
+      - name: Configure Conan
+        run: conan remote add sintef ${env:CONAN_UPLOAD} --insert 0
+      - name: Conan create
+        run: |
+          conan create -s build_type=${{ matrix.build_type }} -s compiler.toolset=${{ matrix.compiler_toolset }} -s compiler.version=${{ matrix.compiler_version }} -b missing . sintef/stable
+      - name: Conan upload
+        run: |
+          conan upload --all -c -r sintef ${env:SINTEF_REFERENCE} --retry 10
+      - name: Bintray info
+        run: |
+          python bintray.py ${env:SINTEF_CONAN_CLASS} ${env:CONAN_LOGIN_USERNAME_SINTEF} ${env:CONAN_PASSWORD_SINTEF}

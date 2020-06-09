@@ -1,0 +1,50 @@
+name: GCC Conan
+
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+env:
+  SINTEF_REFERENCE: "ogre3d*"
+  SINTEF_CONAN_CLASS: "Ogre3dConan"
+  CONAN_UPLOAD: "https://api.bintray.com/conan/sintef-ocean/conan"
+  CONAN_PASSWORD_SINTEF: ${{ secrets.BINTRAY_API_KEY }}
+  CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.BINTRAY_USER }}
+  CONAN_NON_INTERACTIVE: True
+  CONAN_USE_ALWAYS_SHORT_PATHS: True
+
+jobs:
+  conan-with-gcc:
+    name: Conan
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: gcc-${{ matrix.compiler_version }}
+      CXX: g++-${{ matrix.compiler_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04]
+        build_type: [Debug, Release]
+        compiler_version: [7, 8, 9]
+        compiler_libcxx: [libstdc++11]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          sudo pip3 install --upgrade setuptools pip
+          sudo pip3 install conan requests
+          sudo pip3 install conan_package_tools
+      - name: Configure Conan
+        run: conan remote add sintef ${CONAN_UPLOAD} --insert 0
+      - name: Conan create
+        run: |
+          conan create -s build_type=${{ matrix.build_type }} \
+            -s compiler.version=${{ matrix.compiler_version }} \
+            -s compiler.libcxx=${{ matrix.compiler_libcxx }} \
+            -b missing . sintef/stable
+      - name: Conan upload
+        run: |
+          conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10
+      - name: Bintray info
+        run: |
+          python3 bintray.py ${SINTEF_CONAN_CLASS} ${CONAN_LOGIN_USERNAME_SINTEF} ${CONAN_PASSWORD_SINTEF}
