@@ -35,7 +35,9 @@ jobs:
           pip3 install conan requests
           pip3 install conan_package_tools
       - name: Configure Conan
-        run: conan remote add sintef ${env:CONAN_UPLOAD} --insert 0
+        run: |
+          conan remote add sintef ${CONAN_UPLOAD} --insert 0
+          conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
       - name: Conan create
         run: |
           conan create -s build_type=${{ matrix.build_type }} -s compiler.toolset=${{ matrix.compiler_toolset }} -s compiler.version=${{ matrix.compiler_version }} -b missing . sintef/stable
