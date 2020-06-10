@@ -25,7 +25,7 @@ jobs:
         os: [ubuntu-20.04]
         build_type: [Debug, Release]
         compiler_version: [8, 9]
-        compiler_libcxx: [libstdc++]
+        compiler_libcxx: [libstdc++11]
 
     steps:
       - uses: actions/checkout@v2
@@ -40,15 +40,30 @@ jobs:
           conan remote add sintef ${CONAN_UPLOAD} --insert 0
           conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
           conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-      - name: Conan create
+          # - name: Conan create
+          #   run: |
+          #     conan create -s build_type=${{ matrix.build_type }} \
+          #       -s compiler.version=${{ matrix.compiler_version }} \
+          #       -s compiler.libcxx=${{ matrix.compiler_libcxx }} \
+          #       -b missing . sintef/stable
+          # - name: Conan upload
+          #   run: |
+          #     conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10
+          # - name: Bintray info
+          #   run: |
+          #     python3 bintray.py ${SINTEF_CONAN_CLASS} ${CONAN_LOGIN_USERNAME_SINTEF} ${CONAN_PASSWORD_SINTEF}
+    
+      - name: Conan install
         run: |
-          conan create -s build_type=${{ matrix.build_type }} \
-            -s compiler.version=${{ matrix.compiler_version }} \
-            -s compiler.libcxx=${{ matrix.compiler_libcxx }} \
-            -b missing . sintef/stable
-      - name: Conan upload
+          mkdir build
+          cd build
+          conan install .. -b missing -s build_type=${{ matrix.build_type }}
+      - name: CMake configure
         run: |
-          conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10
-      - name: Bintray info
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
+      - name: CMake build
         run: |
-          python3 bintray.py ${SINTEF_CONAN_CLASS} ${CONAN_LOGIN_USERNAME_SINTEF} ${CONAN_PASSWORD_SINTEF}
+          make
+
+
+
