@@ -24,7 +24,6 @@ The package is usually consumed using the `conan install` command or a *conanfil
    ogre3d/[>=0.1]@sintef/stable
 
    [options]
-   ogre3d:shared=False # by default
 
    [imports]
    licenses, * -> ./licenses @ folder=True
