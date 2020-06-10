@@ -34,6 +34,7 @@ jobs:
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
+          sudo apt-get install libomp-dev
       - name: Configure Conan
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0
