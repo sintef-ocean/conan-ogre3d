@@ -9,10 +9,12 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
 ## How to use this package
 
-1. Add remote to conan's package [registry.txt](http://docs.conan.io/en/latest/reference/config_files/registry.txt.html):
+1. Add remote to conan's package [registry.txt](http://docs.conan.io/en/latest/reference/config_files/registry.txt.html), to `bincrafters` and to `utopia`:
 
    ```bash
    $ conan remote add sintef https://api.bintray.com/conan/sintef-ocean/conan
+   $ conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
+   $ conan remote add bincrafters https://api.bintray.com/conan/conan/conan-center
    ```
 
 2. Using *conanfile.txt* in your project with *cmake*
@@ -31,7 +33,6 @@ The package is usually consumed using the `conan install` command or a *conanfil
    [generators]
    cmake
    ```
-
    Insert into your *CMakeLists.txt* something like the following lines:
    ```cmake
    cmake_minimum_required(VERSION 3.13)
