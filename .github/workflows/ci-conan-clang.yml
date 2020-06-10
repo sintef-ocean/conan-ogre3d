@@ -34,7 +34,6 @@ jobs:
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
-          sudo apt-get install libgomp1
       - name: Configure Conan
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0
@@ -60,4 +59,4 @@ jobs:
       - name: Conan build
         run: |
           cd build
-          conan build .. -c -b
+          conan build ..
