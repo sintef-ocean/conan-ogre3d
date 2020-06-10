@@ -59,4 +59,5 @@ jobs:
       - name: Conan build
         run: |
           cd build
+          conan source ..
           conan build ..
