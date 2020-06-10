@@ -44,7 +44,7 @@ jobs:
           conan create -s build_type=${{ matrix.build_type }} -s compiler.toolset=${{ matrix.compiler_toolset }} -s compiler.version=${{ matrix.compiler_version }} -b missing . sintef/stable
       - name: Conan upload
         run: |
-          conan upload --all -c -r sintef ${env:SINTEF_REFERENCE} --retry 10
+          conan upload --all -c -r sintef ${env:SINTEF_REFERENCE} --retry 10 --force
       - name: Bintray info
         run: |
           python bintray.py ${env:SINTEF_CONAN_CLASS} ${env:CONAN_LOGIN_USERNAME_SINTEF} ${env:CONAN_PASSWORD_SINTEF}
