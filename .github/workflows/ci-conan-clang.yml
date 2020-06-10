@@ -59,4 +59,5 @@ jobs:
           conan install .. -b missing -s build_type=${{ matrix.build_type }}
       - name: Conan build
         run: |
-          conan build ..
+          cd build
+          conan build .. -c -b
