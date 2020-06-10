@@ -52,18 +52,11 @@ jobs:
           # - name: Bintray info
           #   run: |
           #     python3 bintray.py ${SINTEF_CONAN_CLASS} ${CONAN_LOGIN_USERNAME_SINTEF} ${CONAN_PASSWORD_SINTEF}
-    
       - name: Conan install
         run: |
           mkdir build
           cd build
           conan install .. -b missing -s build_type=${{ matrix.build_type }}
-      - name: CMake configure
+      - name: Conan build
         run: |
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
-      - name: CMake build
-        run: |
-          make
-
-
-
+          conan build ..
