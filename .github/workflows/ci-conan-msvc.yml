@@ -36,7 +36,7 @@ jobs:
           pip3 install conan_package_tools
       - name: Configure Conan
         run: |
-          conan remote add sintef ${CONAN_UPLOAD} --insert 0
+          conan remote add sintef ${env:CONAN_UPLOAD} --insert 0
           conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
           conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
       - name: Conan create
