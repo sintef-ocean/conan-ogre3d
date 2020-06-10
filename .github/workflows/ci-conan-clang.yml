@@ -25,7 +25,7 @@ jobs:
         os: [ubuntu-20.04]
         build_type: [Debug, Release]
         compiler_version: [8, 9]
-        compiler_libcxx: [libstdc++11]
+        compiler_libcxx: [libstdc++]
 
     steps:
       - uses: actions/checkout@v2
