@@ -3,6 +3,7 @@
 [_![Clang Conan](https://github.com/sintef-ocean/conan-ogre3d/workflows/Clang%20Conan/badge.svg)_](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A%22Clang+Conan%22)
 [ ![Download](https://api.bintray.com/packages/sintef-ocean/conan/ogre3d%3Asintef/images/download.svg) ](https://bintray.com/sintef-ocean/conan/ogre3d%3Asintef/_latestVersion)
 
+[Conan.io](https://conan.io) recipe for [Ogre3D](https://www.ogre3d.org).
 
 The recipe generates library packages, which can be found at [Bintray](https://bintray.com/sintef-ocean/conan/ogre3d%3Asintef/_latestVersion).
 The package is usually consumed using the `conan install` command or a *conanfile.txt*.

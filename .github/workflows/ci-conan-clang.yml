@@ -24,7 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-20.04]
         build_type: [Debug, Release]
-        compiler_version: [8, 9]
+        compiler_version: [8, 9, 10]
         compiler_libcxx: [libstdc++11]
 
     steps:
@@ -34,7 +34,7 @@ jobs:
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
-          sudo apt-get install libomp-dev
+          sudo apt-get install libomp-dev clang-tools-10
       - name: Configure Conan
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0

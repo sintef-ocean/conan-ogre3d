@@ -1,15 +1,14 @@
 from conans import ConanFile, CMake, tools
-import os
 
 
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
     version = "1.12.5"
     license = "MIT"
-    author = "konrad"
-    url = "https://github.com/KonradNoTantoo/ogre3d_conan"
+    author = "SINTEF Ocean"
+    url = "https://github.com/sintef-ocean/conan-ogre3d"
     description = "3D graphics rendering engine"
-    topics = ("graphics", "3D rendering", "3D", "conan")
+    topics = ("graphics", "3D rendering", "3D", "ogre3d")
     settings = "os", "compiler", "build_type", "arch"
 
     options = {
@@ -60,7 +59,7 @@ class Ogre3dConan(ConanFile):
 
     folder_name = "ogre-{}".format(version)
 
-    # using scm is a workaround for https://github.com/OGRECave/ogre/issues/1332
+    # scm is a workaround for https://github.com/OGRECave/ogre/issues/1332
     scm = {
         "type": "git",
         "subfolder": folder_name,
@@ -68,7 +67,6 @@ class Ogre3dConan(ConanFile):
         "revision": "v{}".format(version),
         "submodule": "recursive"
     }
-
 
     def configure(self):
         # we only need sdl for IO control
@@ -93,7 +91,6 @@ class Ogre3dConan(ConanFile):
             del self.options.direct3d9_renderer
             del self.options.direct3d11_renderer
 
-
     def requirements(self):
         if self.options.with_boost:
             self.requires("boost/1.71.0@conan/stable")
@@ -107,20 +104,19 @@ class Ogre3dConan(ConanFile):
         if self.settings.os == "Linux" and self.options.bites:
             self.requires("libxaw/1.0.13@bincrafters/stable")
 
-
     def source(self):
-        tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name), "project(OGRE VERSION 1.12.5)",
-                              '''project(OGRE VERSION 1.12.5)
+        tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name),
+                              "project(OGRE VERSION {}".format(self.version),
+                              '''project(OGRE VERSION {})
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 link_libraries(${CONAN_LIBS})
-add_compile_definitions(GLEW_NO_GLU)''')
-
+add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
 
     def configure_cmake(self):
         cmake = CMake(self)
 
-        cmake.definitions["OGRE_BUILD_DEPENDENCIES"] = "NO" # use libraries built by conan
+        cmake.definitions["OGRE_BUILD_DEPENDENCIES"] = "NO"  # use libraries built by conan
 
         cmake.definitions["OGRE_COPY_DEPENDENCIES"] = "OFF"
         cmake.definitions["OGRE_INSTALL_DEPENDENCIES"] = "OFF"
@@ -143,16 +139,13 @@ add_compile_definitions(GLEW_NO_GLU)''')
         cmake.configure(source_folder=self.folder_name)
         return cmake
 
-
     def build(self):
         cmake = self.configure_cmake()
         cmake.build()
 
-
     def package(self):
         cmake = self.configure_cmake()
         cmake.install()
-
 
     def package_info(self):
         libs = [
@@ -165,7 +158,8 @@ add_compile_definitions(GLEW_NO_GLU)''')
             "OgreVolume",
         ]
 
-        if self.options.bites: libs.append("OgreBites")
+        if self.options.bites:
+            libs.append("OgreBites")
 
         self.cpp_info.includedirs.extend([
             "include/OGRE",
@@ -176,7 +170,8 @@ add_compile_definitions(GLEW_NO_GLU)''')
             "include/OGRE/Terrain",
             "include/OGRE/Volume",
         ])
-        if self.options.bites: self.cpp_info.includedirs.append("include/OGRE/Bites")
+        if self.options.bites:
+            self.cpp_info.includedirs.append("include/OGRE/Bites")
 
         if self.settings.compiler == "Visual Studio" and self.settings.build_type == "Debug":
             self.cpp_info.libs = [lib + "_d" for lib in libs]
