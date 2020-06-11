@@ -106,7 +106,7 @@ class Ogre3dConan(ConanFile):
 
     def source(self):
         tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name),
-                              "project(OGRE VERSION {}".format(self.version),
+                              "project(OGRE VERSION {})".format(self.version),
                               '''project(OGRE VERSION {})
 include(${{CMAKE_BINARY_DIR}}/conanbuildinfo.cmake)
 conan_basic_setup()
