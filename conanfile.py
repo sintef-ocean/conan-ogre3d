@@ -108,9 +108,9 @@ class Ogre3dConan(ConanFile):
         tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name),
                               "project(OGRE VERSION {}".format(self.version),
                               '''project(OGRE VERSION {})
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(${{CMAKE_BINARY_DIR}}/conanbuildinfo.cmake)
 conan_basic_setup()
-link_libraries(${CONAN_LIBS})
+link_libraries(${{CONAN_LIBS}})
 add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
 
     def configure_cmake(self):
