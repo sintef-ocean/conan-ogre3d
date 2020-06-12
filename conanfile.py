@@ -1,6 +1,5 @@
 from conans import ConanFile, CMake, tools
 
-
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
     version = "1.12.5"
@@ -148,6 +147,7 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
     def package(self):
         cmake = self.configure_cmake()
         cmake.install()
+        self.copy("LICENSE*", dst="licenses", src=str(self.source_folder), ignore_case=True, keep_path=True)
 
     def package_info(self):
         libs = [
