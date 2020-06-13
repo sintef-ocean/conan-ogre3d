@@ -22,11 +22,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019]
+        compiler_toolset: [v141, v142]
         build_type: [Debug, Release]
         compiler_version: [16]
-        compiler_toolset: [v141, v142]
-
+        os: [windows-2019]
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
