@@ -24,21 +24,16 @@ jobs:
       matrix:
         compiler_version: [6, 7, 8, 9]
         build_type: [Debug, Release]
-        compiler_libcxx: [libstdc++, libstdc++11]
         os: [ubuntu-18.04, ubuntu-20.04]
         exclude:
           - os: ubuntu-20.04
             compiler_version: 6
-          - os: ubuntu-20.04
-            compiler_libcxx: libstdc++
           - os: ubuntu-18.04
             compiler_version: 7
           - os: ubuntu-18.04
             compiler_version: 8
           - os: ubuntu-18.04
             compiler_version: 9
-          - os: ubuntu-18.04
-            compiler_libcxx: libstdc++11
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
@@ -60,7 +55,7 @@ jobs:
         run: |
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.version=${{ matrix.compiler_version }} \
-            -s compiler.libcxx=${{ matrix.compiler_libcxx }} \
+            -s compiler.libcxx=libstdc++11 \
             -b missing . sintef/stable
       - name: Conan upload
         run: |
