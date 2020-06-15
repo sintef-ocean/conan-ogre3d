@@ -5,12 +5,10 @@ from conans import ConanFile, CMake, tools
 
 class Ogre3dTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
+    generators = "cmake_paths", "cmake_find_package"
 
     def build(self):
         cmake = CMake(self)
-        # Current dir is "test_package/build/<build_id>" and CMakeLists.txt is
-        # in "test_package"
         cmake.configure()
         cmake.build()
 
@@ -21,5 +19,13 @@ class Ogre3dTestConan(ConanFile):
 
     def test(self):
         if not tools.cross_building(self.settings):
-            bin_path = os.path.join("bin", "test_package")
-            self.run(bin_path, run_environment=True)
+            target_name = "test_package"
+            if self.settings.os == "Windows":
+                tester_exe = target_name + ".exe"
+                tester_path = os.path.join(self.build_folder,
+                                           str(self.settings.build_type))
+            else:
+                tester_exe = target_name
+                tester_path = "." + os.sep
+            self.run(os.path.join(tester_path, tester_exe),
+                     run_environment=True)

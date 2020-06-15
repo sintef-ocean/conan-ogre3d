@@ -151,6 +151,7 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
                   ignore_case=True, keep_path=True)
 
     def package_info(self):
+        self.cpp_info.name = 'Ogre3D'
         libs = [
             "OgreMain",
             "OgreOverlay",

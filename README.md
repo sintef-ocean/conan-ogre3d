@@ -32,18 +32,19 @@ The package is usually consumed using the `conan install` command or a *conanfil
    licenses, * -> ./licenses @ folder=True
 
    [generators]
-   cmake
+   cmake_paths
+   cmake_find_package
    ```
    Insert into your *CMakeLists.txt* something like the following lines:
    ```cmake
    cmake_minimum_required(VERSION 3.13)
    project(TheProject CXX)
 
-   include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-   conan_basic_setup()
+   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+   find_package(Ogre3D MODULE REQUIRED)
 
    add_executable(the_executor code.cpp)
-   target_link_libraries(the_executor i${CONAN_LIBS})
+   target_link_libraries(the_executor Ogre3D::Ogre3D)
    ```
    Then, do
    ```bash
