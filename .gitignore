@@ -1,4 +1,6 @@
 *~
 test_package/build/
 *.pyc
+*.swp
+*.swo
 __pycache__
