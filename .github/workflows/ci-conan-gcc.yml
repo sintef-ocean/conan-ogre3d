@@ -64,9 +64,9 @@ jobs:
       - name: Conan create
         run: |
           if [ ${{ matrix.compiler_version }} -eq 6 ]; then
-              export SINTEF_BUILD_FLAG="-b missing -b outdated"
-          else
               export SINTEF_BUILD_FLAG="--build"
+          else
+              export SINTEF_BUILD_FLAG="-b missing -b outdated"
           fi
           echo "Build policy: ${SINTEF_BUILD_FLAG}"
           conan create -s build_type=${{ matrix.build_type }} \
