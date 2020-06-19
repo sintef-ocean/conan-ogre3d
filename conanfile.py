@@ -1,6 +1,7 @@
 from conans import ConanFile, CMake, tools
 from conans.model.version import Version
 
+
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
     version = "1.12.5"

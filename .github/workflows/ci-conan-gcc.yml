@@ -25,21 +25,29 @@ jobs:
       matrix:
         compiler_version: [6, 7, 8, 9]
         build_type: [Debug, Release]
-        os: [ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
         exclude:
-          - os: ubuntu-20.04
+          - os: ubuntu-16.04
+            compiler_version: 7
+          - os: ubuntu-16.04
+            compiler_version: 8
+          - os: ubuntu-16.04
+            compiler_version: 9
+          - os: ubuntu-18.04
             compiler_version: 6
           - os: ubuntu-18.04
-            compiler_version: 7
-          - os: ubuntu-18.04
-            compiler_version: 8
-          - os: ubuntu-18.04
             compiler_version: 9
+          - os: ubuntu-20.04
+            compiler_version: 6
+          - os: ubuntu-20.04
+            compiler_version: 7
+          - os: ubuntu-20.04
+            compiler_version: 8
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
         run: |
-          sudo pip3 install --upgrade setuptools pip mako
+          sudo pip3 install --upgrade setuptools pip mako jinja2
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
           if [ ${{ matrix.compiler_version }} -eq 6 ]; then
