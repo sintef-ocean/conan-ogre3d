@@ -73,4 +73,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
 ## Known recipe issues
 
-None
+**Note**: There are dependencies that rely on `pkg-config`. It is a conditional build
+requirement, and the binary packages we build have this package pre-installed in case of
+the Linux builds, at least. If you want to download a prebuilt ogre package make sure to
+install `pkg-config` as a prerequisite.

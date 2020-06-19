@@ -64,7 +64,7 @@ jobs:
       - name: Conan create
         run: |
           if [ ${{ matrix.compiler_version }} -eq 6 ]; then
-              export SINTEF_BUILD_FLAG="--build"
+              export SINTEF_BUILD_FLAG="-b missing -b outdated -b libx11 -b expat"
           else
               export SINTEF_BUILD_FLAG="-b missing -b outdated"
           fi
