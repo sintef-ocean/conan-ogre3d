@@ -185,3 +185,7 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
             self.cpp_info.libs = [lib + "_d" for lib in libs]
         else:
             self.cpp_info.libs = libs
+
+    def package_id(self):
+        del self.info.settings.arch_build
+        del self.info.settings.os_build
