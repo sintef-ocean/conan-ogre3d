@@ -47,10 +47,10 @@ class Ogre3dConan(ConanFile):
 
     requires = [
         ("bzip2/1.0.8"),
-        ("libpng/1.6.37@bincrafters/stable", "override"),
-        ("freetype/2.10.0@bincrafters/stable"),
+        ("libpng/1.6.37"),
+        ("freetype/2.10.0"),
         ("zlib/1.2.11"),
-        ("pugixml/1.10@bincrafters/stable"),
+        ("pugixml/1.10"),
         ("sdl2/2.0.10@bincrafters/stable"),
         ("zziplib/0.13.69@utopia/testing"),
         # ("ois/1.5@utopia/testing"), # for older versions
