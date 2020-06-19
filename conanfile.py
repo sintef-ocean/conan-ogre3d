@@ -1,4 +1,5 @@
 from conans import ConanFile, CMake, tools
+from conans.model.version import Version
 
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
@@ -45,11 +46,11 @@ class Ogre3dConan(ConanFile):
     generators = "cmake"
 
     requires = [
-        ("bzip2/1.0.8@conan/stable", "override"),
-        ("libpng/1.6.37@bincrafters/stable", "override"),
-        ("freetype/2.10.0@bincrafters/stable"),
-        ("zlib/1.2.11@conan/stable"),
-        ("pugixml/1.10@bincrafters/stable"),
+        ("bzip2/1.0.8"),
+        ("libpng/1.6.37"),
+        ("freetype/2.10.0"),
+        ("zlib/1.2.11"),
+        ("pugixml/1.10"),
         ("sdl2/2.0.10@bincrafters/stable"),
         ("zziplib/0.13.69@utopia/testing"),
         # ("ois/1.5@utopia/testing"), # for older versions

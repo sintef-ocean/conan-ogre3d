@@ -11,6 +11,7 @@ env:
   CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.BINTRAY_USER }}
   CONAN_NON_INTERACTIVE: True
   CONAN_USE_ALWAYS_SHORT_PATHS: True
+  CONAN_REVISIONS_ENABLED: 0
 
 jobs:
   conan-with-msvc:
@@ -47,6 +48,7 @@ jobs:
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${env:SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
+          conan upload --all -c -r sintef freeimage --retry 10 --retry-wait 20 --force
       - name: Bintray info
         run: |
           python bintray.py ${env:SINTEF_CONAN_CLASS} `

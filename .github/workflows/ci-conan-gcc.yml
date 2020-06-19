@@ -11,6 +11,7 @@ env:
   CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.BINTRAY_USER }}
   CONAN_NON_INTERACTIVE: True
   CONAN_USE_ALWAYS_SHORT_PATHS: True
+  CONAN_REVISIONS_ENABLED: 0
 
 jobs:
   conan-with-gcc:
@@ -38,13 +39,14 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install prerequisites
         run: |
-          sudo pip3 install --upgrade setuptools pip
+          sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
           if [ ${{ matrix.compiler_version }} -eq 6 ]; then
               sudo add-apt-repository ppa:ubuntu-toolchain-r/test
               sudo apt-get update
               sudo apt-get install gcc-6 g++-6 -y
+              gcc-6 -v
           fi
       - name: Configure Conan
         run: |
