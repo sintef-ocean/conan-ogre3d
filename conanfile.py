@@ -46,10 +46,10 @@ class Ogre3dConan(ConanFile):
     generators = "cmake"
 
     requires = [
-        ("bzip2/1.0.8@conan/stable", "override"),
+        ("bzip2/1.0.8"),
         ("libpng/1.6.37@bincrafters/stable", "override"),
         ("freetype/2.10.0@bincrafters/stable"),
-        ("zlib/1.2.11@conan/stable"),
+        ("zlib/1.2.11"),
         ("pugixml/1.10@bincrafters/stable"),
         ("sdl2/2.0.10@bincrafters/stable"),
         ("zziplib/0.13.69@utopia/testing"),
@@ -185,7 +185,3 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
             self.cpp_info.libs = [lib + "_d" for lib in libs]
         else:
             self.cpp_info.libs = libs
-
-    def package_id(self):
-        del self.info.settings.arch_build
-        del self.info.settings.os_build
