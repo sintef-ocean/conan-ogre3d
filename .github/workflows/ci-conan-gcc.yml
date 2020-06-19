@@ -63,10 +63,15 @@ jobs:
           conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
       - name: Conan create
         run: |
+          if [ ${{ matrix.compiler_version }} -eq 6 ]; then
+              export SINTEF_BUILD_FLAG="-b missing -b outdated"
+          else
+              export SINTEF_BUILD_FLAG="--build"
+          fi
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.version=${{ matrix.compiler_version }} \
             -s compiler.libcxx=libstdc++11 \
-            -b missing -b outdated . sintef/stable
+            ${SINTEF_BUILD_FLAG} . sintef/stable
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
