@@ -51,7 +51,6 @@ jobs:
           conan upload --all -c -r sintef xz_utils --retry 10 --retry-wait 20 --force
           conan upload --all -c -r sintef freeimage --retry 10 --retry-wait 20 --force
           conan upload --all -c -r sintef libx11 --retry 10 --retry-wait 20 --force
-          conan upload --all -c -r sintef expat --retry 10 --retry-wait 20 --force
       - name: Bintray info
         run: |
           python3 bintray.py ${SINTEF_CONAN_CLASS} \
