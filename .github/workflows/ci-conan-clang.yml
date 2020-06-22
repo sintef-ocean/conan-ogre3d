@@ -33,7 +33,6 @@ jobs:
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
-          sudo apt-get install libomp-dev
           if [ ${{ matrix.compiler_version }} -eq 10 ]; then
               wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
               echo deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main >> clang10.list
