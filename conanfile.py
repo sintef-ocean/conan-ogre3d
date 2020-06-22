@@ -148,7 +148,8 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
         cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \
             "ON" if self.options.opengles_renderer else "OFF"
         if self.settings.compiler == "clang" \
-           and self.settings.compiler.version == "10":
+           and (self.settings.compiler.version == "10" or
+                self.settings.compiler.version == "9"):
             cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-fopenmp=libomp"
 
         cmake.configure(source_folder=self.folder_name)
