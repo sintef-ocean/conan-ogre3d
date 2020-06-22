@@ -192,7 +192,8 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
             self.cpp_info.includedirs.append("include/OGRE/Bites")
 
         if self.settings.compiler == "clang" \
-           and self.settings.compiler.version == "10":
+           and (self.settings.compiler.version == "10" or
+                self.settings.compiler.version == "9"):
             self.cpp_info.exelinkflags = ["-fopenmp=libomp"]
 
         if self.settings.compiler == "Visual Studio" \
