@@ -25,7 +25,7 @@ jobs:
       matrix:
         compiler_version: [8, 9, 10]
         build_type: [Debug, Release]
-        os: [ubuntu-20.04]
+        os: [ubuntu-18.04]
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
@@ -33,7 +33,14 @@ jobs:
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo pip3 install conan_package_tools
-          sudo apt-get install libomp-dev clang-tools-10
+          sudo apt-get install libomp-dev
+          if [ ${{ matrix.compiler_version }} -eq 10 ]; then
+              wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+              echo deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main >> clang10.list
+              sudo mv clang10.list /etc/apt/sources.list.d/clang10.list
+              sudo apt-get update
+              sudo apt-get install clang-tools-10
+          fi
       - name: Configure Conan
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0

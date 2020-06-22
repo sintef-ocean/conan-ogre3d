@@ -117,26 +117,38 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
     def configure_cmake(self):
         cmake = CMake(self)
 
-        cmake.definitions["OGRE_BUILD_DEPENDENCIES"] = "NO"  # use libraries built by conan
+        cmake.definitions["OGRE_BUILD_DEPENDENCIES"] = "NO"  # use conan libs
 
         cmake.definitions["OGRE_COPY_DEPENDENCIES"] = "OFF"
         cmake.definitions["OGRE_INSTALL_DEPENDENCIES"] = "OFF"
         cmake.definitions["OGRE_INSTALL_PDB"] = "ON"
-        cmake.definitions["OGRE_BUILD_PLUGIN_CG"] = "ON" if self.options.with_cg else "OFF"
-        cmake.definitions["OGRE_BUILD_SAMPLES"] = "ON" if self.options.samples else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_PYTHON"] = "ON" if self.options.with_python else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_CSHARP"] = "ON" if self.options.with_csharp else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_JAVA"] = "ON" if self.options.with_java else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_BITES"] = "ON" if self.options.bites else "OFF"
+        cmake.definitions["OGRE_BUILD_PLUGIN_CG"] = \
+            "ON" if self.options.with_cg else "OFF"
+        cmake.definitions["OGRE_BUILD_SAMPLES"] = \
+            "ON" if self.options.samples else "OFF"
+        cmake.definitions["OGRE_BUILD_COMPONENT_PYTHON"] = \
+            "ON" if self.options.with_python else "OFF"
+        cmake.definitions["OGRE_BUILD_COMPONENT_CSHARP"] = \
+            "ON" if self.options.with_csharp else "OFF"
+        cmake.definitions["OGRE_BUILD_COMPONENT_JAVA"] = \
+            "ON" if self.options.with_java else "OFF"
+        cmake.definitions["OGRE_BUILD_COMPONENT_BITES"] = \
+            "ON" if self.options.bites else "OFF"
 
         if self.settings.os == "Windows":
-            cmake.definitions["OGRE_BUILD_RENDERSYSTEM_D3D9"] = "ON" if self.options.direct3d9_renderer else "OFF"
-            cmake.definitions["OGRE_BUILD_RENDERSYSTEM_D3D11"] = "ON" if self.options.direct3d11_renderer else "OFF"
+            cmake.definitions["OGRE_BUILD_RENDERSYSTEM_D3D9"] = \
+                "ON" if self.options.direct3d9_renderer else "OFF"
+            cmake.definitions["OGRE_BUILD_RENDERSYSTEM_D3D11"] = \
+                "ON" if self.options.direct3d11_renderer else "OFF"
 
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL3PLUS"] = "ON" if self.options.opengl_renderer else "OFF"
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL"] = "ON" if self.options.opengl3_renderer else "OFF"
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = "ON" if self.options.opengles_renderer else "OFF"
-        if self.settings.compiler == "clang" and self.settings.compiler.version == "10":
+        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL3PLUS"] = \
+            "ON" if self.options.opengl_renderer else "OFF"
+        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL"] = \
+            "ON" if self.options.opengl3_renderer else "OFF"
+        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \
+            "ON" if self.options.opengles_renderer else "OFF"
+        if self.settings.compiler == "clang" \
+           and self.settings.compiler.version == "10":
             cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-fopenmp=libomp"
 
         cmake.configure(source_folder=self.folder_name)
@@ -179,10 +191,12 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
         if self.options.bites:
             self.cpp_info.includedirs.append("include/OGRE/Bites")
 
-        if self.settings.compiler == "clang" and self.settings.compiler.version == "10":
+        if self.settings.compiler == "clang" \
+           and self.settings.compiler.version == "10":
             self.cpp_info.exelinkflags = ["-fopenmp=libomp"]
 
-        if self.settings.compiler == "Visual Studio" and self.settings.build_type == "Debug":
+        if self.settings.compiler == "Visual Studio" \
+           and self.settings.build_type == "Debug":
             self.cpp_info.libs = [lib + "_d" for lib in libs]
         else:
             self.cpp_info.libs = libs
