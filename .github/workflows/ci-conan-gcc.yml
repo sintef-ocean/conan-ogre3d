@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler_version: [6, 7, 8, 9]
+        compiler_version: [63, 7, 8, 9]
         build_type: [Debug, Release]
         os: [ubuntu-20.04]
     container:
@@ -41,16 +41,15 @@ jobs:
           conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
       - name: Conan create
         run: |
-          if [ ${{ matrix.compiler_version }} -eq 6 ]; then
+          if [ ${{ matrix.compiler_version }} -eq 63 ]; then
               export SINTEF_BUILD_FLAG="-b missing -b outdated -b libx11 -b expat"
           else
               export SINTEF_BUILD_FLAG="-b missing -b outdated"
           fi
           echo "Build policy: ${SINTEF_BUILD_FLAG}"
           conan create -s build_type=${{ matrix.build_type }} \
-            -s compiler.version=${{ matrix.compiler_version }} \
             -s compiler.libcxx=libstdc++11 \
-            . sintef/stable ${SINTEF_BUILD_FLAG} -b ogre3d
+            . sintef/stable ${SINTEF_BUILD_FLAG}
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
