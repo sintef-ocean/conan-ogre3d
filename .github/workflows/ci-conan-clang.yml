@@ -34,6 +34,7 @@ jobs:
           sudo apt-get update
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
+          sudo apt-get install -y libgl1-mesa-dev pkg-config
       - name: Configure Conan
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0
