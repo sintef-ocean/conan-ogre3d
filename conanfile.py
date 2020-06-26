@@ -147,9 +147,7 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
             "ON" if self.options.opengl3_renderer else "OFF"
         cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \
             "ON" if self.options.opengles_renderer else "OFF"
-        if self.settings.compiler == "clang" \
-           and (self.settings.compiler.version == "10" or
-                self.settings.compiler.version == "9"):
+        if self.settings.compiler == "clang":
             cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-fopenmp=libomp"
 
         cmake.configure(source_folder=self.folder_name)
@@ -192,9 +190,7 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
         if self.options.bites:
             self.cpp_info.includedirs.append("include/OGRE/Bites")
 
-        if self.settings.compiler == "clang" \
-           and (self.settings.compiler.version == "10" or
-                self.settings.compiler.version == "9"):
+        if self.settings.compiler == "clang":
             self.cpp_info.exelinkflags = ["-fopenmp=libomp"]
 
         if self.settings.compiler == "Visual Studio" \
