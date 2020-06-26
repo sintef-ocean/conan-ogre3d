@@ -35,6 +35,7 @@ jobs:
           sudo pip3 install --upgrade setuptools pip mako
           sudo pip3 install conan requests
           sudo apt-get install -y libgl1-mesa-dev pkg-config
+          sudo apt-get install -y libomp-${{ matrix.compiler_version }}-dev
       - name: Configure Conan
         run: |
           conan remote add sintef ${CONAN_UPLOAD} --insert 0
