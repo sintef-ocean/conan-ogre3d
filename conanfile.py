@@ -4,7 +4,7 @@ from conans.model.version import Version
 
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
-    version = "1.12.5"
+    version = "1.12.9"
     license = "MIT"
     author = "SINTEF Ocean"
     url = "https://github.com/sintef-ocean/conan-ogre3d"
@@ -20,6 +20,7 @@ class Ogre3dConan(ConanFile):
         "with_python": [True, False],
         "with_csharp": [True, False],
         "with_java": [True, False],
+        "with_qt": [True, False],
         "bites": [True, False],
         "direct3d9_renderer": [True, False],
         "direct3d11_renderer": [True, False],
@@ -36,6 +37,7 @@ class Ogre3dConan(ConanFile):
         "with_python": False,
         "with_csharp": False,
         "with_java": False,
+        "with_qt": False,
         "bites": False,
         "direct3d9_renderer": False,
         "direct3d11_renderer": False,
@@ -49,7 +51,7 @@ class Ogre3dConan(ConanFile):
     requires = [
         ("bzip2/1.0.8"),
         ("libpng/1.6.37"),
-        ("freetype/2.10.0"),
+        ("freetype/2.10.2"),
         ("zlib/1.2.11"),
         ("pugixml/1.10"),
         ("sdl2/2.0.10@bincrafters/stable"),
@@ -99,6 +101,12 @@ class Ogre3dConan(ConanFile):
         if self.options.with_poco:
             self.requires("poco/1.9.4")
 
+        if self.options.with_qt:
+            self.options["sdl2"].fPIC = True
+            self.requires("qt/5.15.1@bincrafters/stable")
+            self.requires("libjpeg/9d")
+
+
         if self.options.with_cg:
             self.requires("nvidia-cg-toolkit-binaries/3.1.0013@utopia/testing")
 
@@ -112,7 +120,8 @@ class Ogre3dConan(ConanFile):
 include(${{CMAKE_BINARY_DIR}}/conanbuildinfo.cmake)
 conan_basic_setup()
 link_libraries(${{CONAN_LIBS}})
-add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
+add_compile_definitions(GLEW_NO_GLU)
+add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
 
     def configure_cmake(self):
         cmake = CMake(self)
@@ -142,9 +151,9 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
                 "ON" if self.options.direct3d11_renderer else "OFF"
 
         cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL3PLUS"] = \
-            "ON" if self.options.opengl_renderer else "OFF"
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL"] = \
             "ON" if self.options.opengl3_renderer else "OFF"
+        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL"] = \
+            "ON" if self.options.opengl_renderer else "OFF"
         cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \
             "ON" if self.options.opengles_renderer else "OFF"
         if self.settings.compiler == "clang":
@@ -177,6 +186,8 @@ add_compile_definitions(GLEW_NO_GLU)'''.format(self.version))
 
         if self.options.bites:
             libs.append("OgreBites")
+            if self.options.with_qt:
+                libs.append("OgreBitesQt")
 
         self.cpp_info.includedirs.extend([
             "include/OGRE",
