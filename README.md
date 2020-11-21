@@ -65,11 +65,16 @@ The package is usually consumed using the `conan install` command or a *conanfil
 | with_python       | [True, False]     | False             |
 | with_csharp       | [True, False]     | False             |
 | with_java         | [True, False]     | False             |
+| with_qt           | [True, False]     | False             |
 | bites             | [True, False]     | False             |
 | direct3d9_renderer| [True, False]     | False             |
 | opengl_renderer   | [True, False]     | False             |
 | opengl3_renderer  | [True, False]     | False             |
 | opengles_renderer | [True, False]     | False             |
+
+If `with_qt=True`, you should add `bites=True` to include the `ApplicationContextQt.h`
+interface in `Ogre::Bites`.
+
 
 ## Known recipe issues
 
