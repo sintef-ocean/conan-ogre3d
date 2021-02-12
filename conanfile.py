@@ -106,6 +106,8 @@ class Ogre3dConan(ConanFile):
             self.requires("qt/5.15.1@bincrafters/stable")
             self.requires("libjpeg/9d")
 
+        if self.options.bites:
+            self.options["sdl2"].fPIC = True
 
         if self.options.with_cg:
             self.requires("nvidia-cg-toolkit-binaries/3.1.0013@utopia/testing")
@@ -174,6 +176,7 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
 
     def package_info(self):
         self.cpp_info.name = 'Ogre3D'
+        self.cpp_info.libdirs = ['lib', 'lib/OGRE']
         libs = [
             "OgreMain",
             "OgreOverlay",
@@ -182,12 +185,36 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             "OgreRTShaderSystem",
             "OgreTerrain",
             "OgreVolume",
+            "Codec_FreeImage",
+            "Codec_STBI",
+            "Plugin_BSPSceneManager",
+            "Plugin_DotScene",
+            "Plugin_OctreeSceneManager",
+            "Plugin_OctreeZone",
+            "Plugin_ParticleFX",
+            "Plugin_PCZSceneManager",
+            "OgreMeshLodGenerator"
         ]
 
         if self.options.bites:
             libs.append("OgreBites")
             if self.options.with_qt:
                 libs.append("OgreBitesQt")
+                
+        if self.options.opengl_renderer:
+            libs.append("RenderSystem_GL")
+
+        if self.options.opengl3_renderer:
+            libs.append("RenderSystem_GL3Plus")
+
+        if self.options.direct3d9_renderer:
+            libs.append("RenderSystem_Direct3D9")
+
+        if self.options.direct3d11_renderer:
+            libs.append("RenderSystem_Direct3D11")
+
+        if self.options.opengles_renderer:
+            libs.append("RenderSystem_GLES2")
 
         self.cpp_info.includedirs.extend([
             "include/OGRE",
@@ -197,9 +224,35 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             "include/OGRE/RTShaderSystem",
             "include/OGRE/Terrain",
             "include/OGRE/Volume",
+            "include/OGRE/Threading",
+            "include/OGRE/MeshLodGenerator",
+            "include/OGRE/Plugins/BSPSceneManager",
+            "include/OGRE/Plugins/CgProgramManager",
+            "include/OGRE/Plugins/DotScene",
+            "include/OGRE/Plugins/FreeImageCodec",
+            "include/OGRE/Plugins/OctreeSceneManager",
+            "include/OGRE/Plugins/OctreeZone",
+            "include/OGRE/Plugins/ParticleFX",
+            "include/OGRE/Plugins/PCZSceneManager",
+            "include/OGRE/Plugins/STBICodec"
         ])
         if self.options.bites:
             self.cpp_info.includedirs.append("include/OGRE/Bites")
+            
+        if self.options.opengl_renderer:
+            self.cpp_info.libs.append("include/OGRE/RenderSystems/GL")
+
+        if self.options.opengl3_renderer:
+            self.cpp_info.libs.append("include/OGRE/RenderSystems/GL3Plus")
+
+        if self.options.direct3d9_renderer:
+            self.cpp_info.libs.append("include/OGRE/RenderSystems/Direct3D9")
+
+        if self.options.direct3d11_renderer:
+            self.cpp_info.libs.append("include/OGRE/RenderSystems/Direct3D11")
+
+        if self.options.opengles_renderer:
+            self.cpp_info.libs.append("include/OGRE/RenderSystems/GLES2")
 
         if self.settings.compiler == "clang":
             self.cpp_info.exelinkflags = ["-fopenmp=libomp"]
