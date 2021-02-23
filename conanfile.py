@@ -26,7 +26,7 @@ class Ogre3dConan(ConanFile):
         "direct3d11_renderer": [True, False],
         "opengl_renderer": [True, False],
         "opengl3_renderer": [True, False],
-        #"opengles_renderer": [True, False], # Getting build error: "Cannot open include file 'EGL/egl.h'"
+        "opengles_renderer": [True, False], 
         "codec_freeimage": [True, False],
         "codec_stbi": [True, False],
         "plugin_bsp_scenemanager": [True,False],
@@ -50,7 +50,7 @@ class Ogre3dConan(ConanFile):
         "direct3d11_renderer": False,
         "opengl_renderer": False,
         "opengl3_renderer": False,
-        #"opengles_renderer": False,
+        "opengles_renderer": False,
         "codec_freeimage": True,
         "codec_stbi": True,
         "plugin_bsp_scenemanager": True,
@@ -133,7 +133,9 @@ class Ogre3dConan(ConanFile):
             self.requires("freeimage/3.18.0@utopia/testing")
 
         #if self.options.opengles_renderer:
-            #self.requires("opengl/system") # It seems that the conan package is corrupted, nothing is generated...
+            #self.requires("opengl/system")
+            #if self.settings.os == "Linux":
+            #    self.requires("egl/system")
 
     def source(self):
         tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name),
@@ -176,8 +178,8 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             "ON" if self.options.opengl3_renderer else "OFF"
         cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL"] = \
             "ON" if self.options.opengl_renderer else "OFF"
-        #cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \ # Getting build error: "Cannot open include file 'EGL/egl.h'"
-        #    "ON" if self.options.opengles_renderer else "OFF"
+        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \
+            "ON" if self.options.opengles_renderer else "OFF"
         if self.settings.compiler == "clang":
             cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-fopenmp=libomp"
 
@@ -225,23 +227,23 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
         ]
 
         if self.options.codec_freeimage:
-            libs.append("Codec_FreeImage");
+            libs.append("Codec_FreeImage")
         if self.options.codec_stbi:
-            libs.append("Codec_STBI");
+            libs.append("Codec_STBI")
 
         if self.options.plugin_bsp_scenemanager:
-            libs.append("Plugin_BSPSceneManager");
+            libs.append("Plugin_BSPSceneManager")
         if self.options.plugin_octree:
-            libs.append("Plugin_OctreeSceneManager");
+            libs.append("Plugin_OctreeSceneManager")
         if self.options.plugin_particlefx:
-            libs.append("Plugin_ParticleFX");
+            libs.append("Plugin_ParticleFX")
         if self.options.plugin_dotscene:
-            libs.append("Plugin_DotScene");
+            libs.append("Plugin_DotScene")
         if self.options.with_cg:
-            libs.append("Plugin_CgProgramManager");
+            libs.append("Plugin_CgProgramManager")
         if self.options.plugin_pcz_scenemanager:
-            libs.append("Plugin_PCZSceneManager");
-            libs.append("Plugin_OctreeZone");
+            libs.append("Plugin_PCZSceneManager")
+            libs.append("Plugin_OctreeZone")
 
         if self.options.opengl_renderer:
             libs.append("RenderSystem_GL")
@@ -251,9 +253,9 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             libs.append("RenderSystem_Direct3D9")
         if self.options.direct3d11_renderer:
             libs.append("RenderSystem_Direct3D11")
-        #if self.options.opengles_renderer:
-        #    libs.append("RenderSystem_GLES2")
-        if self.options.opengl_renderer or self.options.opengl3_renderer:# or self.options.opengles_renderer:
+        if self.options.opengles_renderer:
+            libs.append("RenderSystem_GLES2")
+        if self.options.opengl_renderer or self.options.opengl3_renderer or self.options.opengles_renderer:
             libs.append("OgreGLSupport")
 
         if self.options.bites:
@@ -276,9 +278,9 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             self.cpp_info.includedirs.append("include/OGRE/Bites")
             
         if self.options.codec_freeimage:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/FreeImageCodec");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/FreeImageCodec")
         if self.options.codec_stbi:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/STBICodec");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/STBICodec")
 
         if self.options.opengl_renderer:
             self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GL")
@@ -289,22 +291,22 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D9")
         if self.options.direct3d11_renderer:
             self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D11")
-        #if self.options.opengles_renderer:
-        #    self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GLES2")
+        if self.options.opengles_renderer:
+            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GLES2")
 
         if self.options.plugin_bsp_scenemanager:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/BSPSceneManager");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/BSPSceneManager")
         if self.options.plugin_octree:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/OctreeSceneManager");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/OctreeSceneManager")
         if self.options.plugin_particlefx:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/ParticleFX");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/ParticleFX")
         if self.options.plugin_dotscene:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/DotScene");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/DotScene")
         if self.options.with_cg:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/CgProgramManager");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/CgProgramManager")
         if self.options.plugin_pcz_scenemanager:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/PCZSceneManager");
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/OctreeZone");
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/PCZSceneManager")
+            self.cpp_info.includedirs.append("include/OGRE/Plugins/OctreeZone")
 
         if self.settings.compiler == "clang":
             self.cpp_info.exelinkflags = ["-fopenmp=libomp"]
