@@ -56,21 +56,28 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
 ## Package options
 
-| Option            | Allowed values    |   Default value   |
-| ----------------- | ----------------- | ----------------- |
-| with_cg           | [True, False]     | False             |
-| with_boost        | [True, False]     | False             |
-| with_poco         | [True, False]     | False             |
-| samples           | [True, False]     | False             |
-| with_python       | [True, False]     | False             |
-| with_csharp       | [True, False]     | False             |
-| with_java         | [True, False]     | False             |
-| with_qt           | [True, False]     | False             |
-| bites             | [True, False]     | False             |
-| direct3d9_renderer| [True, False]     | False             |
-| opengl_renderer   | [True, False]     | False             |
-| opengl3_renderer  | [True, False]     | False             |
-| opengles_renderer | [True, False]     | False             |
+| Option                 | Allowed values    |   Default value   |
+| -----------------      | ----------------- | ----------------- |
+| with_cg                | [True, False]     | False             |
+| with_boost             | [True, False]     | False             |
+| with_poco              | [True, False]     | False             |
+| samples                | [True, False]     | False             |
+| with_python            | [True, False]     | False             |
+| with_csharp            | [True, False]     | False             |
+| with_java              | [True, False]     | False             |
+| with_qt                | [True, False]     | False             |
+| bites                  | [True, False]     | False             |
+| direct3d9_renderer     | [True, False]     | False             |
+| opengl_renderer        | [True, False]     | False             |
+| opengl3_renderer       | [True, False]     | False             |
+| opengles_renderer      | [True, False]     | False             |
+| codec_freeimage        | [True, False]     | True              |
+| codec_stbi             | [True, False]     | True              |
+| plugin_bsp_scenemanager| [True, False]     | True              |
+| plugin_octree          | [True, False]     | True              |
+| plugin_particlefx      | [True, False]     | True              |
+| plugin_dotscene        | [True, False]     | True              |
+| plugin_pcz_scenemanager| [True, False]     | True              |
 
 If `with_qt=True`, you should add `bites=True` to include the `ApplicationContextQt.h`
 interface in `Ogre::Bites`.

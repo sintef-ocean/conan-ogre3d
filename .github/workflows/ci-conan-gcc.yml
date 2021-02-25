@@ -48,8 +48,8 @@ jobs:
           fi
           echo "Build policy: ${SINTEF_BUILD_FLAG}"
           conan create -s build_type=${{ matrix.build_type }} \
-            -s compiler.libcxx=libstdc++11 \
-            . sintef/stable ${SINTEF_BUILD_FLAG}
+            -s compiler.libcxx=libstdc++11\
+            . sintef/stable ${SINTEF_BUILD_FLAG} --update
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
