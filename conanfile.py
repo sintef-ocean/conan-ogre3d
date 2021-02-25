@@ -249,10 +249,11 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             libs.append("RenderSystem_GL")
         if self.options.opengl3_renderer:
             libs.append("RenderSystem_GL3Plus")
-        if self.options.direct3d9_renderer:
-            libs.append("RenderSystem_Direct3D9")
-        if self.options.direct3d11_renderer:
-            libs.append("RenderSystem_Direct3D11")
+        if self.settings.os == "Windows":
+            if self.options.direct3d9_renderer:
+                libs.append("RenderSystem_Direct3D9")
+            if self.options.direct3d11_renderer:
+                libs.append("RenderSystem_Direct3D11")
         if self.options.opengles_renderer:
             libs.append("RenderSystem_GLES2")
         if self.options.opengl_renderer or self.options.opengl3_renderer or self.options.opengles_renderer:
@@ -287,10 +288,11 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
             self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GL/GL")
         if self.options.opengl3_renderer:
             self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GL3Plus")
-        if self.options.direct3d9_renderer:
-            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D9")
-        if self.options.direct3d11_renderer:
-            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D11")
+        if self.settings.os == "Windows":
+            if self.options.direct3d9_renderer:
+                self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D9")
+            if self.options.direct3d11_renderer:
+                self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D11")
         if self.options.opengles_renderer:
             self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GLES2")
 
