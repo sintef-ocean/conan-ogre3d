@@ -212,6 +212,47 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
         self.copy("LICENSE*", dst="licenses",
                   ignore_case=True, keep_path=True)
 
+        # If UNIX, lib-prefix need to be added to plugin libraries which are intentially removed by Ogres build system
+        if self.settings.os != "Windows":
+            if self.options.codec_freeimage:
+                tools.rename("{}/lib/OGRE/Codec_FreeImage.so".format(self.package_folder), \
+                "{}/lib/OGRE/libCodec_FreeImage.so".format(self.package_folder))
+            if self.options.codec_stbi:
+                tools.rename("{}/lib/OGRE/Codec_STBI.so".format(self.package_folder), \
+                "{}/lib/OGRE/libCodec_STBI.so".format(self.package_folder))
+
+            if self.options.plugin_bsp_scenemanager:
+                tools.rename("{}/lib/OGRE/Plugin_BSPSceneManager.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_BSPSceneManager.so".format(self.package_folder))
+            if self.options.plugin_octree:
+                tools.rename("{}/lib/OGRE/Plugin_OctreeSceneManager.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_OctreeSceneManager.so".format(self.package_folder))
+            if self.options.plugin_particlefx:
+                tools.rename("{}/lib/OGRE/Plugin_ParticleFX.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_ParticleFX.so".format(self.package_folder))
+            if self.options.plugin_dotscene:
+                tools.rename("{}/lib/OGRE/Plugin_DotScene.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_DotScene.so".format(self.package_folder))
+            if self.options.with_cg:
+                tools.rename("{}/lib/OGRE/Plugin_CgProgramManager.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_CgProgramManager.so".format(self.package_folder))
+            if self.options.plugin_pcz_scenemanager:
+                tools.rename("{}/lib/OGRE/Plugin_PCZSceneManager.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_PCZSceneManager.so".format(self.package_folder))
+                tools.rename("{}/lib/OGRE/Plugin_OctreeZone.so".format(self.package_folder), \
+                "{}/lib/OGRE/libPlugin_OctreeZone.so".format(self.package_folder))
+
+            if self.options.opengl_renderer:
+                tools.rename("{}/lib/OGRE/RenderSystem_GL.so".format(self.package_folder), \
+                "{}/lib/OGRE/libRenderSystem_GL.so".format(self.package_folder))
+            if self.options.opengl3_renderer:
+                tools.rename("{}/lib/OGRE/RenderSystem_GL3Plus.so".format(self.package_folder), \
+                "{}/lib/OGRE/libRenderSystem_GL3Plus.so".format(self.package_folder))
+            if self.options.opengles_renderer:
+                tools.rename("{}/lib/OGRE/RenderSystem_GLES2.so".format(self.package_folder), \
+                "{}/lib/OGRE/libRenderSystem_GLES2.so".format(self.package_folder))
+
+
     def package_info(self):
         self.cpp_info.name = 'Ogre3D'
         self.cpp_info.libdirs = ['lib', 'lib/OGRE']
