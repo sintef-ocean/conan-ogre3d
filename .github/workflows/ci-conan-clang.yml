@@ -38,9 +38,9 @@ jobs:
           sudo apt-get install -y libomp-${{ matrix.compiler_version }}-dev
       - name: Configure Conan
         run: |
-          conan remote add sintef ${CONAN_UPLOAD} --insert 0
           conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
           conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+          conan remote add sintef ${CONAN_UPLOAD}
       - name: Conan create
         run: |
           conan create -s build_type=${{ matrix.build_type }} \
