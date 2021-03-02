@@ -69,7 +69,7 @@ class Ogre3dConan(ConanFile):
         ("zlib/1.2.11"),
         ("pugixml/1.10"),
         ("sdl2/2.0.10@bincrafters/stable"),
-        ("zziplib/0.13.69@utopia/testing"),
+        ("zziplib/0.13.71"),
         # ("ois/1.5@utopia/testing"), # for older versions
     ]
 
@@ -117,7 +117,7 @@ class Ogre3dConan(ConanFile):
         if self.options.with_qt:
             if self.settings.compiler != 'Visual Studio':
                 self.options["sdl2"].fPIC = True
-            self.requires("qt/5.15.1@bincrafters/stable")
+            self.requires("qt/5.15.2")
             self.requires("libjpeg/9d")
         
         if self.options.bites and self.settings.compiler != 'Visual Studio':
@@ -130,6 +130,7 @@ class Ogre3dConan(ConanFile):
             self.requires("libxaw/1.0.13@bincrafters/stable")
 
         if self.options.codec_freeimage:
+            self.requires("libjpeg/9d") 
             self.requires("freeimage/3.18.0@utopia/testing")
 
         #if self.options.opengles_renderer:
