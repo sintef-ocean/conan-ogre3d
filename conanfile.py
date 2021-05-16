@@ -26,7 +26,7 @@ class Ogre3dConan(ConanFile):
         "direct3d11_renderer": [True, False],
         "opengl_renderer": [True, False],
         "opengl3_renderer": [True, False],
-        "opengles_renderer": [True, False], 
+        "opengles_renderer": [True, False],
         "codec_freeimage": [True, False],
         "codec_stbi": [True, False],
         "plugin_bsp_scenemanager": [True,False],
@@ -119,7 +119,7 @@ class Ogre3dConan(ConanFile):
                 self.options["sdl2"].fPIC = True
             self.requires("qt/5.15.2")
             self.requires("libjpeg/9d")
-        
+
         if self.options.bites and self.settings.compiler != 'Visual Studio':
             self.options["sdl2"].fPIC = True
 
@@ -130,7 +130,7 @@ class Ogre3dConan(ConanFile):
             self.requires("libxaw/1.0.13@bincrafters/stable")
 
         if self.options.codec_freeimage:
-            self.requires("libjpeg/9d") 
+            self.requires("libjpeg/9d")
             self.requires("freeimage/3.18.0@utopia/testing")
 
         #if self.options.opengles_renderer:
@@ -319,7 +319,7 @@ add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
         ])
         if self.options.bites:
             self.cpp_info.includedirs.append("include/OGRE/Bites")
-            
+
         if self.options.codec_freeimage:
             self.cpp_info.includedirs.append("include/OGRE/Plugins/FreeImageCodec")
         if self.options.codec_stbi:

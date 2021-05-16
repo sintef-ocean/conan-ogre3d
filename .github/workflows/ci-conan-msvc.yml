@@ -5,10 +5,9 @@ on: [push]
 
 env:
   SINTEF_REFERENCE: "ogre3d*"
-  SINTEF_CONAN_CLASS: "Ogre3dConan"
-  CONAN_UPLOAD: "https://api.bintray.com/conan/sintef-ocean/conan"
-  CONAN_PASSWORD_SINTEF: ${{ secrets.BINTRAY_API_KEY }}
-  CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.BINTRAY_USER }}
+  CONAN_UPLOAD: ${{ secrets.CONAN_URL }}
+  CONAN_PASSWORD_SINTEF: ${{ secrets.CONAN_PASSWORD }}
+  CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.CONAN_USER }}
   CONAN_NON_INTERACTIVE: True
   CONAN_USE_ALWAYS_SHORT_PATHS: True
   CONAN_REVISIONS_ENABLED: 0
@@ -36,7 +35,7 @@ jobs:
       - name: Configure Conan
         run: |
           conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
-          conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+          conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
           conan remote add sintef ${env:CONAN_UPLOAD}
       - name: Conan create
         run: |
@@ -47,7 +46,3 @@ jobs:
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${env:SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
-      - name: Bintray info
-        run: |
-          python bintray.py ${env:SINTEF_CONAN_CLASS} `
-            ${env:CONAN_LOGIN_USERNAME_SINTEF} ${env:CONAN_PASSWORD_SINTEF}
