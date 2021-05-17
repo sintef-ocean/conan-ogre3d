@@ -51,7 +51,7 @@ class Ogre3dConan(ConanFile):
         "opengl_renderer": False,
         "opengl3_renderer": False,
         "opengles_renderer": False,
-        "codec_freeimage": True,
+        "codec_freeimage": False,
         "codec_stbi": True,
         "plugin_bsp_scenemanager": True,
         "plugin_octree": True,
