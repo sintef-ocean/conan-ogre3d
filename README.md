@@ -14,6 +14,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
    $ conan remote add sintef https://conan.sintef.io/public
    $ conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
    $ conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+   $ conan config set general.revisions_enabled=1
    ```
 
 2. Using *conanfile.txt* in your project with *cmake*

@@ -40,6 +40,7 @@ jobs:
           conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
           conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
           conan remote add sintef ${CONAN_UPLOAD}
+          conan config set general.revisions_enabled=1
       - name: Conan create
         run: |
           conan create -s build_type=${{ matrix.build_type }} \
