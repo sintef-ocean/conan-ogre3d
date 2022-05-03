@@ -41,7 +41,7 @@ jobs:
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.libcxx=libstdc++11 \
             -b missing -b outdated --update \
-            . ${{ version }}@sintef/stable
+            . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
