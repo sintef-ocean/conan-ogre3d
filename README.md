@@ -11,9 +11,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
 1. Add remote to conan's package [remotes](https://docs.conan.io/en/latest/reference/commands/misc/remote.html?highlight=remotes):
 
    ```bash
-   $ conan remote add sintef https://artifactory.smd.sintef.no/artifactory/api/conan/conan-local
-   $ conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
-   $ conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+   $ conan remote add sintef https://artifactory.smd.sintef.no/artifactory/api/conan/conan-local # only for freeimage [discouraged]
    $ conan config set general.revisions_enabled=1
    ```
 
@@ -23,7 +21,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
    ```
    [requires]
-   ogre3d/[>=0.1]@sintef/stable
+   ogre3d/[>=13.3.4]@sintef/stable
 
    [options]
 
@@ -51,40 +49,105 @@ The package is usually consumed using the `conan install` command or a *conanfil
    $ conan install .. -b missing -s build_type=<build_type>
    ```
    where `<build_type>` is e.g. `Debug` or `Release`.
-   You can now continue with the usual dance with cmake commands for configuration and compilation. For details on how to use conan, please consult [Conan.io docs](http://docs.conan.io/en/latest/)
+   You can now continue with the usual dance with cmake commands for configuration and
+   compilation. For details on how to use conan, please consult [Conan.io docs](http://docs.conan.io/en/latest/)
 
 ## Package options
 
-| Option                 | Allowed values    |   Default value   |
-| -----------------      | ----------------- | ----------------- |
-| with_cg                | [True, False]     | False             |
-| with_boost             | [True, False]     | False             |
-| with_poco              | [True, False]     | False             |
-| samples                | [True, False]     | False             |
-| with_python            | [True, False]     | False             |
-| with_csharp            | [True, False]     | False             |
-| with_java              | [True, False]     | False             |
-| with_qt                | [True, False]     | False             |
-| bites                  | [True, False]     | False             |
-| direct3d9_renderer     | [True, False]     | False             |
-| opengl_renderer        | [True, False]     | False             |
-| opengl3_renderer       | [True, False]     | False             |
-| opengles_renderer      | [True, False]     | False             |
-| codec_freeimage        | [True, False]     | True              |
-| codec_stbi             | [True, False]     | True              |
-| plugin_bsp_scenemanager| [True, False]     | True              |
-| plugin_octree          | [True, False]     | True              |
-| plugin_particlefx      | [True, False]     | True              |
-| plugin_dotscene        | [True, False]     | True              |
-| plugin_pcz_scenemanager| [True, False]     | True              |
-
-If `with_qt=True`, you should add `bites=True` to include the `ApplicationContextQt.h`
-interface in `Ogre::Bites`.
+| Option                          | Allowed values     | Default |
+| ---                             | ---                | ---    |
+| with_freetype                   | [True, False]      | False  |
+| with_sdl                        | [True, False]      | False  |
+| with_qt                         | [True, False]      | False  |
+| install_samples                 | [True, False]      | False  |
+| install_tools                   | [True, False]      | True   |
+| bindings_csharp                 | [True, False]      | False  |
+| bindings_java                   | [True, False]      | False  |
+| bindings_python                 | [True, False]      | False  |
+| rendersystem_direct3d11         | [True, False]      | False  |
+| rendersystem_direct3d9          | [True, False]      | False  |
+| rendersystem_metal              | [True, False]      | False  |
+| rendersystem_opengl             | [True, False]      | False  |
+| rendersystem_opengl3            | [True, False]      | True   |
+| rendersystem_opengles           | [True, False]      | False  |
+| rendersystem_tiny               | [True, False]      | False  |
+| rendersystem_vulkan             | [True, False]      | True   |
+| plugin_assimp                   | [True, False]      | True   |
+| plugin_bsp                      | [True, False]      | True   |
+| plugin_dotscene                 | [True, False]      | True   |
+| plugin_exrcodec                 | [True, False]      | True   |
+| plugin_freeimage                | [True, False]      | False  |
+| plugin_glslang                  | [True, False]      | True   |
+| plugin_octree                   | [True, False]      | True   |
+| plugin_particlefx               | [True, False]      | True   |
+| plugin_pcz                      | [True, False]      | True   |
+| plugin_stbi                     | [True, False]      | True   |
+| component_bites                 | [True, False]      | True   |
+| component_meshlodgenerator      | [True, False]      | True   |
+| component_overlay               | [True, False]      | True   |
+| component_overlay_imgui         | [True, False]      | True   |
+| component_paging                | [True, False]      | True   |
+| component_property              | [True, False]      | True   |
+| component_rtshadersystem        | [True, False]      | True   |
+| component_terrain               | [True, False]      | True   |
+| component_volume                | [True, False]      | True   |
+| enable_astc                     | [True, False]      | True   |
+| enable_dds                      | [True, False]      | True   |
+| enable_double                   | [True, False]      | False  |
+| enable_etc                      | [True, False]      | True   |
+| enable_gl_state_cache_support   | [True, False]      | False  |
+| enable_gles2_glsl_optimiser     | [True, False]      | False  |
+| enable_meshlod                  | [True, False]      | True   |
+| enable_node_inherit_transform   | [True, False]      | False  |
+| enable_pvrtc                    | [True, False]      | False  |
+| enable_quad_buffer_stereo       | [True, False]      | False  |
+| enable_viewport_orientationmode | [True, False]      | False  |
+| enable_zip                      | [True, False]      | True   |
+| build_tests                     | [True, False]      | False  |
 
 
 ## Known recipe issues
 
-**Note**: There are dependencies that rely on `pkg-config`. It is a conditional build
-requirement, and the binary packages we build have this package pre-installed in case of
-the Linux builds, at least. If you want to download a prebuilt ogre package make sure to
-install `pkg-config` as a prerequisite.
+  The recipe is only tested on Windows and Linux. It will probably not work for Emscripten
+  and Android and other platforms.
+  - The package executables and libraries are not relocatable, i.e. the runpaths are not stripped and contain absolute paths.
+  - `plugins.cfg` may specify an absolute path to the plugin directory. It should be replaced with a relative path.
+  - `install_samples=True` are not fully relocatable, an entry in `samples.cfg` must point to the absolute path of the sample library.
+  - Some disabled features may detect system-installed requirements and enabled even if they are specified to be disabled in the recipe
+
+## Non-exposed Ogre configuration
+
+  The conan recipe does not expose all options of the Ogre build script. The following
+  variables currently use their default values as defined by the Ogre build system.
+  ```
+    OGRE_BUILD_MSVC_MP
+    OGRE_BUILD_MSVC_ZM
+    OGRE_CONFIG_STATIC_LINK_CRT
+    OGRE_INSTALL_VSPROPS
+    OGRE_STATIC
+    OGRE_RESOURCEMANAGER_STRICT
+    OGRE_NODELESS_POSITIONING
+    OGRE_BUILD_PLUGIN_CG
+    OGRE_CONFIG_THREADS
+    OGRE_CONFIG_THREAD_PROVIDER
+    OGRE_PROFILING
+    OGRE_CONFIG_FILESYSTEM_UNICODE
+    OGRE_INSTALL_PDB
+    OGRE_BUILD_LIBS_AS_FRAMEWORKS
+    OGRE_BITES_STATIC_PLUGINS
+    OGRE_INSTALL_DOCS
+    OGRE_BUILD_XSIEXPORTER
+    OGRE_BUILD_RENDERSYSTEM_METAL
+    OGRE_CONFIG_ENABLE_TBB_SCHEDULER
+    OGRE_CONFIG_ENABLE_GLES2_CG_SUPPORT
+  ```
+
+## Developer Notes
+
+  Procedure for making patch files for conanization and other fixes:
+    - Clone the Ogre git repository and checkout the tagged release branch
+    - Do necessary changes and create commit(s)
+    - Create the patches using `git format-patch -1 --no-renames -o ../patches/`
+    - The flag `-1` should coincide with the number of commits to create patch files of
+    - Each patch name should be prepended with the version for which it is intended
+    - Add each patch to the list of patches in `conandata.yml`

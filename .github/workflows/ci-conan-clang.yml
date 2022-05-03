@@ -1,7 +1,6 @@
 name: Clang Conan
 
-# This workflow is triggered on pushes to the repository.
-on: [push]
+on: [push, workflow_dispatch]
 
 env:
   SINTEF_REFERENCE: "ogre3d*"
@@ -11,7 +10,6 @@ env:
   CONAN_NON_INTERACTIVE: True
   CONAN_USE_ALWAYS_SHORT_PATHS: True
   CONAN_REVISIONS_ENABLED: 1
-  SINTEF_BUILD_FLAG: "-b libx11 -b expat -b libraw -b freeimage -b libdrm"
 
 jobs:
   conan-with-clang:
@@ -20,7 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler_version: [9, 10]
+        version: [13.3.4]
+        compiler_version: [9, 10, 11]
         build_type: [Debug, Release]
         os: [ubuntu-20.04]
     container:
@@ -31,14 +30,11 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo pip3 install --upgrade setuptools pip mako
-          sudo pip3 install conan requests
-          sudo apt-get install -y libgl1-mesa-dev pkg-config
+          sudo pip3 install --upgrade setuptools pip
+          sudo pip3 install --upgrade conan
           sudo apt-get install -y libomp-${{ matrix.compiler_version }}-dev
       - name: Configure Conan
         run: |
-          conan remote add utopia https://api.bintray.com/conan/konradnotantoo/utopia
-          conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
           conan remote add sintef ${CONAN_UPLOAD}
           conan config set general.revisions_enabled=1
       - name: Conan create
@@ -46,9 +42,7 @@ jobs:
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.version=${{ matrix.compiler_version }} \
             -s compiler.libcxx=libstdc++11 \
-            -b missing -b outdated ${SINTEF_BUILD_FLAG} --update . sintef/stable
+            -b missing -b outdated --update . ${{ version }}@sintef/stable
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
-          conan upload --all -c -r sintef xz_utils --retry 10 --retry-wait 20 --force
-          conan upload --all -c -r sintef libx11 --retry 10 --retry-wait 20 --force

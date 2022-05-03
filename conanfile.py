@@ -1,359 +1,371 @@
 from conans import ConanFile, CMake, tools
-from conans.model.version import Version
 
 
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
-    version = "1.12.9"
     license = "MIT"
+    #version = "13.3.4"
     author = "SINTEF Ocean"
     url = "https://github.com/sintef-ocean/conan-ogre3d"
     description = "3D graphics rendering engine"
     topics = ("graphics", "3D rendering", "3D", "ogre3d")
     settings = "os", "compiler", "build_type", "arch"
+    exports_sources = ['patches/*']
+    generators = ("cmake", "cmake_find_package")
+    _cmake = None
 
     options = {
-        "with_cg": [True, False],
-        "with_boost": [True, False],
-        "with_poco": [True, False],
-        "samples": [True, False],
-        "with_python": [True, False],
-        "with_csharp": [True, False],
-        "with_java": [True, False],
+        "with_freetype": [True, False],
+        "with_sdl": [True, False],
         "with_qt": [True, False],
-        "bites": [True, False],
-        "direct3d9_renderer": [True, False],
-        "direct3d11_renderer": [True, False],
-        "opengl_renderer": [True, False],
-        "opengl3_renderer": [True, False],
-        "opengles_renderer": [True, False],
-        "codec_freeimage": [True, False],
-        "codec_stbi": [True, False],
-        "plugin_bsp_scenemanager": [True,False],
-        "plugin_octree": [True,False],
-        "plugin_particlefx": [True,False],
-        "plugin_dotscene": [True,False],
-        "plugin_pcz_scenemanager": [True,False],
+        "install_samples": [True, False],
+        "install_tools": [True, False],
+        "bindings_csharp": [True, False],
+        "bindings_java": [True, False],
+        "bindings_python": [True, False],
+        "rendersystem_direct3d11": [True, False],
+        "rendersystem_direct3d9": [True, False],
+        "rendersystem_metal": [True, False],
+        "rendersystem_opengl": [True, False],
+        "rendersystem_opengl3": [True, False],
+        "rendersystem_opengles": [True, False],
+        "rendersystem_tiny": [True, False],
+        "rendersystem_vulkan": [True, False],
+        "plugin_assimp": [True, False],
+        "plugin_bsp": [True, False],
+        "plugin_dotscene": [True, False],
+        "plugin_exrcodec": [True, False],
+        "plugin_freeimage": [True, False],
+        "plugin_glslang": [True, False],
+        "plugin_octree": [True, False],
+        "plugin_particlefx": [True, False],
+        "plugin_pcz": [True, False],
+        "plugin_stbi": [True, False],
+        "component_bites": [True, False],
+        "component_meshlodgenerator": [True, False],
+        "component_overlay": [True, False],
+        "component_overlay_imgui": [True, False],
+        "component_paging": [True, False],
+        "component_property": [True, False],
+        "component_rtshadersystem": [True, False],
+        "component_terrain": [True, False],
+        "component_volume": [True, False],
+        "enable_astc": [True, False],
+        "enable_dds": [True, False],
+        "enable_double": [True, False],
+        "enable_etc": [True, False],
+        "enable_gl_state_cache_support": [True, False],
+        "enable_gles2_glsl_optimiser": [True, False],
+        "enable_meshlod": [True, False],
+        "enable_node_inherit_transform": [True, False],
+        "enable_pvrtc": [True, False],
+        "enable_quad_buffer_stereo": [True, False],
+        "enable_viewport_orientationmode": [True, False],
+        "enable_zip": [True, False],
+        "build_tests": [True, False],
         }
 
     default_options = {
-        "with_cg": False,
-        "with_boost": False,
-        "with_poco": False,
-        "samples": False,
-        "with_python": False,
-        "with_csharp": False,
-        "with_java": False,
+        "with_freetype": False,
+        "with_sdl": False,
         "with_qt": False,
-        "bites": False,
-        "direct3d9_renderer": False,
-        "direct3d11_renderer": False,
-        "opengl_renderer": False,
-        "opengl3_renderer": False,
-        "opengles_renderer": False,
-        "codec_freeimage": False,
-        "codec_stbi": True,
-        "plugin_bsp_scenemanager": True,
+        "install_samples": False,
+        "install_tools": True,
+        "bindings_csharp": False,
+        "bindings_java": False,
+        "bindings_python": False,
+        "rendersystem_direct3d11": False,
+        "rendersystem_direct3d9": False,
+        "rendersystem_metal": False,
+        "rendersystem_opengl": False,
+        "rendersystem_opengl3": True,
+        "rendersystem_opengles": False,
+        "rendersystem_tiny": False,
+        "rendersystem_vulkan": True,
+        "plugin_assimp": True,
+        "plugin_bsp": True,
+        "plugin_dotscene": True,
+        "plugin_exrcodec": True,
+        "plugin_freeimage": False,
+        "plugin_glslang": True,
         "plugin_octree": True,
         "plugin_particlefx": True,
-        "plugin_dotscene": True,
-        "plugin_pcz_scenemanager": True,
+        "plugin_pcz": True,
+        "plugin_stbi": True,
+        "component_bites": True,
+        "component_meshlodgenerator": True,
+        "component_overlay": True,
+        "component_overlay_imgui": True,
+        "component_paging": True,
+        "component_property": True,
+        "component_rtshadersystem": True,
+        "component_terrain": True,
+        "component_volume": True,
+        "enable_astc": True,
+        "enable_dds": True,
+        "enable_double": False,  # does not work with tiny
+        "enable_etc": True,
+        "enable_gl_state_cache_support": False,
+        "enable_gles2_glsl_optimiser": False,
+        "enable_meshlod": True,
+        "enable_node_inherit_transform": False,
+        "enable_pvrtc": False,
+        "enable_quad_buffer_stereo": False,
+        "enable_viewport_orientationmode": False,
+        "enable_zip": True,
+        "build_tests": False,
         }
 
-    generators = "cmake"
+    def requirements(self):
+        deps = self.conan_data["dependencies"][self.version]
+        if self.options.install_tools:
+            self.requires(f"pugixml/{deps['pugixml']}")
+        if self.options.with_sdl:
+            self.requires(f"sdl/{deps['sdl']}", private=True)
+        if self.options.with_qt:
+            self.output.warn("Qt dependency handling may not work")
+            # Qt 6 not working on linux, but when it do: remember to set correct QT_VERSION_MAJOR in patch
+            self.output.warn("install_tools and with_qt produce a linker error for SampleBrowser (png and BZ2 undefined references)")
+            self.requires(f"qt/{deps['qt']}", private=True)
+        if self.options.rendersystem_opengl:
+            self.requires(f"opengl/{deps['opengl']}")
+        if self.options.rendersystem_opengl3:
+            self.requires(f"opengl/{deps['opengl']}")
+        if self.options.rendersystem_opengles:
+            self.output.warn("OpenGL ES requirement not handled by conan")
+            # debian: libgles2-mesa-dev
+        if self.options.rendersystem_tiny and self.settings.os != "Windows":
+            self.requires(f"llvm-openmp/{deps['llvm-openmp']}", private=True)
+        if self.options.rendersystem_vulkan:
+            self.requires(f"vulkan-loader/{deps['vulkan-loader']}", private=True)
 
-    requires = [
-        ("bzip2/1.0.8"),
-        ("libpng/1.6.37"),
-        ("freetype/2.10.2"),
-        ("zlib/1.2.11"),
-        ("pugixml/1.10"),
-        ("sdl2/2.0.10@bincrafters/stable"),
-        ("zziplib/0.13.71"),
-        # ("ois/1.5@utopia/testing"), # for older versions
-    ]
-
-    folder_name = "ogre-{}".format(version)
-
-    # scm is a workaround for https://github.com/OGRECave/ogre/issues/1332
-    scm = {
-        "type": "git",
-        "subfolder": folder_name,
-        "url": "https://github.com/OGRECave/ogre.git",
-        "revision": "v{}".format(version),
-        "submodule": "recursive"
-    }
-
-    def configure(self):
-        # we only need sdl for IO control
-        self.options["sdl2"].fPIC = False
-        self.options["sdl2"].iconv = False
-        self.options["sdl2"].sdl2main = False
+        # figure out what is private requirements (i.e. hidden)
+        if self.options.plugin_assimp:
+            self.requires(f"assimp/{deps['assimp']}", private=False)
+        if self.options.plugin_exrcodec:
+            self.requires(f"openexr/{deps['openexr']}", private=False)
+        if self.options.plugin_freeimage:
+            self.requires(f"freeimage/{deps['freeimage']}", private=False)
+        if self.options.with_freetype:
+            self.requires(f"freetype/{deps['freetype']}", private=True)
+        if self.options.plugin_glslang:
+            self.requires(f"glslang/{deps['glslang']}", private=False)
 
         if self.settings.os == "Linux":
-            self.options["sdl2"].alsa = False
-            self.options["sdl2"].jack = False
-            self.options["sdl2"].pulse = False
-            self.options["sdl2"].nas = False
-            self.options["sdl2"].xcursor = False
-            self.options["sdl2"].xinerama = False
-            self.options["sdl2"].xinput = False
-            self.options["sdl2"].xrandr = False
-            self.options["sdl2"].xscrnsaver = False
-            self.options["sdl2"].xshape = False
-            self.options["sdl2"].xvm = False
+            self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
 
-        if self.settings.os != "Windows":
-            del self.options.direct3d9_renderer
-            del self.options.direct3d11_renderer
+        # with_sdl a conflict arises for zlib..
+        if self.options.with_sdl or self.options.plugin_assimp:
+            self.requires(f"zlib/{deps['zlib']}", override=True, private=True)
 
-    def requirements(self):
-        if self.options.with_boost:
-            self.requires("boost/1.71.0@conan/stable")
+    def build_requirements(self):
+        deps = self.conan_data["dependencies"][self.version]
+        if self.options.bindings_csharp or self.options.bindings_java \
+           or self.options.bindings_python:
+            self.tool_requires(f"swig/{deps['swig']}")
 
-        if self.options.with_poco:
-            self.requires("poco/1.9.4")
+        if self.options.build_tests:
+            self.tool_requires(f"gtest/{deps['gtest']}")
 
-        if self.options.with_qt:
-            if self.settings.compiler != 'Visual Studio':
-                self.options["sdl2"].fPIC = True
-            self.requires("qt/5.15.2")
-            self.requires("libjpeg/9d")
-
-        if self.options.bites and self.settings.compiler != 'Visual Studio':
-            self.options["sdl2"].fPIC = True
-
-        if self.options.with_cg:
-            self.requires("nvidia-cg-toolkit-binaries/3.1.0013@utopia/testing")
-
-        if self.settings.os == "Linux" and self.options.bites:
-            self.requires("libxaw/1.0.13@bincrafters/stable")
-
-        if self.options.codec_freeimage:
-            self.requires("libjpeg/9d")
-            self.requires("freeimage/3.18.0@utopia/testing")
-
-        #if self.options.opengles_renderer:
-            #self.requires("opengl/system")
-            #if self.settings.os == "Linux":
-            #    self.requires("egl/system")
+    @property
+    def _source_subfolder(self):
+        return "source_subfolder"
 
     def source(self):
-        tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name),
-                              "project(OGRE VERSION {})".format(self.version),
-                              '''project(OGRE VERSION {})
-include(${{CMAKE_BINARY_DIR}}/conanbuildinfo.cmake)
-conan_basic_setup()
-link_libraries(${{CONAN_LIBS}})
-add_compile_definitions(GLEW_NO_GLU)
-add_compile_definitions(QT_NO_VERSION_TAGGING)'''.format(self.version))
+        tools.get(**self.conan_data["sources"][self.version],
+                  destination=self._source_subfolder, strip_root=True)
 
-    def configure_cmake(self):
-        cmake = CMake(self)
+        for patch in self.conan_data.get("patches", {}).get(self.version, []):
+            tools.patch(**patch)
 
-        cmake.definitions["OGRE_BUILD_DEPENDENCIES"] = "NO"  # use conan libs
+    def configure(self):
+        self.options["freetype"].shared = False
+        self.options["assimp"].shared = False
+        self.options["pugixml"].shared = False
+        self.options["openexr"].shared = False
+        self.options["glslang"].shared = False
+        if self.settings.os != "Windows":
+            self.options["llvm-openmp"].shared = False
+            self.options["llvm-openmp"].fPIC = True
 
-        cmake.definitions["OGRE_COPY_DEPENDENCIES"] = "OFF"
-        cmake.definitions["OGRE_INSTALL_DEPENDENCIES"] = "OFF"
-        cmake.definitions["OGRE_INSTALL_PDB"] = "ON"
-        cmake.definitions["OGRE_BUILD_PLUGIN_CG"] = \
-            "ON" if self.options.with_cg else "OFF"
-        cmake.definitions["OGRE_BUILD_SAMPLES"] = \
-            "ON" if self.options.samples else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_PYTHON"] = \
-            "ON" if self.options.with_python else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_CSHARP"] = \
-            "ON" if self.options.with_csharp else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_JAVA"] = \
-            "ON" if self.options.with_java else "OFF"
-        cmake.definitions["OGRE_BUILD_COMPONENT_BITES"] = \
-            "ON" if self.options.bites else "OFF"
+        if self.options.install_samples:
+            self.output.info("Samples requires with_sdl=True")
+            self.options.with_sdl = True
 
-        if self.settings.os == "Windows":
-            cmake.definitions["OGRE_BUILD_RENDERSYSTEM_D3D9"] = \
-                "ON" if self.options.direct3d9_renderer else "OFF"
-            cmake.definitions["OGRE_BUILD_RENDERSYSTEM_D3D11"] = \
-                "ON" if self.options.direct3d11_renderer else "OFF"
+    def _configure_cmake(self):
+        if not self._cmake:
+            self._cmake = CMake(self)
+            defs = dict()
 
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL3PLUS"] = \
-            "ON" if self.options.opengl3_renderer else "OFF"
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GL"] = \
-            "ON" if self.options.opengl_renderer else "OFF"
-        cmake.definitions["OGRE_BUILD_RENDERSYSTEM_GLES2"] = \
-            "ON" if self.options.opengles_renderer else "OFF"
-        if self.settings.compiler == "clang":
-            cmake.definitions["CMAKE_EXE_LINKER_FLAGS"] = "-fopenmp=libomp"
+            defs['CMAKE_POSITION_INDEPENDENT_CODE'] = True
+            defs["OGRE_BUILD_DEPENDENCIES"] = False  # use conan libs
+            defs["OGRE_COPY_DEPENDENCIES"] = False
+            defs["OGRE_INSTALL_DEPENDENCIES"] = False
+            defs["OGRE_WITH_FREETYPE"] = self.options.with_freetype
 
-        cmake.definitions["Build_FreeImage_codec."] = \
-            "ON" if self.options.codec_freeimage else "OFF"
-        cmake.definitions["Enable_STBI_image_codec."] = \
-            "ON" if self.options.codec_stbi else "OFF"
+            renderers = "OGRE_BUILD_RENDERSYSTEM"
+            if self.settings.os == "Windows":
+                defs[f"{renderers}_D3D9"] = self.options.rendersystem_direct3d9
+                defs[f"{renderers}_D3D11"] = self.options.rendersystem_direct3d11
+            defs[f"{renderers}_GL"] = self.options.rendersystem_opengl
+            defs[f"{renderers}_GL3PLUS"] = self.options.rendersystem_opengl3
+            defs[f"{renderers}_GLES2"] = self.options.rendersystem_opengles
+            defs[f"{renderers}_TINY"] = self.options.rendersystem_tiny
+            defs[f"{renderers}_VULKAN"] = self.options.rendersystem_vulkan
+            defs[f"{renderers}_METAL"] = self.options.rendersystem_metal
 
-        cmake.definitions["Build_BSP_SceneManager_plugin"] = \
-            "ON" if self.options.plugin_bsp_scenemanager else "OFF"
-        cmake.definitions["Build_Octree_SceneManager_plugin"] = \
-            "ON" if self.options.plugin_octree else "OFF"
-        cmake.definitions["Build_ParticleFX_plugin"] = \
-            "ON" if self.options.plugin_particlefx else "OFF"
-        cmake.definitions["Build_.scene_plugin"] = \
-            "ON" if self.options.plugin_dotscene else "OFF"
-        cmake.definitions["Build_PCZ_SceneManager_plugin"] = \
-            "ON" if self.options.plugin_pcz_scenemanager else "OFF"
+            plugins = "OGRE_BUILD_PLUGIN"
+            defs[f"{plugins}_CG"] = False
+            defs[f"{plugins}_ASSIMP"] = self.options.plugin_assimp
+            defs[f"{plugins}_BSP"] = self.options.plugin_bsp
+            defs[f"{plugins}_DOT_SCENE"] = self.options.plugin_dotscene
+            defs[f"{plugins}_EXRCODEC"] = self.options.plugin_exrcodec
+            defs[f"{plugins}_FREEIMAGE"] = self.options.plugin_freeimage
+            defs[f"{plugins}_GLSLANG"] = self.options.plugin_glslang
+            defs[f"{plugins}_OCTREE"] = self.options.plugin_octree
+            defs[f"{plugins}_PCZ"] = self.options.plugin_particlefx
+            defs[f"{plugins}_PFX"] = self.options.plugin_pcz
+            defs[f"{plugins}_STBI"] = self.options.plugin_stbi
 
-        cmake.configure(source_folder=self.folder_name)
-        return cmake
+            comp = "OGRE_BUILD_COMPONENT"
+            defs[f"{comp}_CSHARP"] = self.options.bindings_csharp
+            defs[f"{comp}_JAVA"] = self.options.bindings_java
+            defs[f"{comp}_PYTHON"] = self.options.bindings_python
+            defs[f"{comp}_BITES"] = self.options.component_bites
+            defs[f"{comp}_MESHLODGENERATOR"] = self.options.component_meshlodgenerator
+            defs[f"{comp}_OVERLAY"] = self.options.component_overlay
+            defs[f"{comp}_OVERLAY_IMGUI"] = self.options.component_overlay_imgui
+            defs[f"{comp}_PAGING"] = self.options.component_paging
+            defs[f"{comp}_PROPERTY"] = self.options.component_property
+            defs[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem
+            defs[f"{comp}_TERRAIN"] = self.options.component_terrain
+            defs[f"{comp}_VOLUME"] = self.options.component_volume
+
+            defs["OGRE_BUILD_RTSHADERSYSTEM_SHADERS"] = \
+                self.options.component_rtshadersystem
+
+            defs["OGRE_BUILD_SAMPLES"] = self.options.install_samples
+            defs["OGRE_INSTALL_SAMPLES"] = self.options.install_samples
+            defs["OGRE_BUILD_TOOLS"] = self.options.install_tools
+            defs["OGRE_INSTALL_TOOLS"] = self.options.install_tools
+
+            defs["OGRE_CONFIG_DOUBLE"] = self.options.enable_double
+            defs["OGRE_CONFIG_NODE_INHERIT_TRANSFORM"] = \
+                self.options.enable_node_inherit_transform
+
+            config = "OGRE_CONFIG_ENABLE"
+            defs[f"{config}_ASTC"] = self.options.enable_astc
+            defs[f"{config}_DDS"] = self.options.enable_dds
+            defs[f"{config}_ETC"] = self.options.enable_etc
+            defs[f"{config}_GL_STATE_CACHE_SUPPORT"] = \
+                self.options.enable_gl_state_cache_support
+            defs[f"{config}_GLES2_GLSL_OPTIMISER"] = \
+                self.options.enable_gles2_glsl_optimiser
+            defs[f"{config}_MESHLOD"] = self.options.enable_meshlod
+            defs[f"{config}_PVRTC"] = self.options.enable_pvrtc
+            defs[f"{config}_QUAD_BUFFER_STEREO"] = \
+                self.options.enable_quad_buffer_stereo
+            defs[f"{config}_VIEWPORT_ORIENTATIONMODE"] = \
+                self.options.enable_viewport_orientationmode
+            defs[f"{config}_ZIP"] = self.options.enable_zip
+
+            defs["OGRE_BUILD_TESTS"] = self.options.build_tests
+
+            self._cmake.definitions.update(defs)
+            self._cmake.configure(source_folder=self._source_subfolder)
+        return self._cmake
 
     def build(self):
-        cmake = self.configure_cmake()
+        cmake = self._configure_cmake()
         cmake.build()
 
     def package(self):
-        cmake = self.configure_cmake()
+        cmake = self._configure_cmake()
         cmake.install()
-        self.copy("LICENSE*", dst="licenses",
+        self.copy("LICENSE*", dst="licenses", src=self._source_subfolder,
                   ignore_case=True, keep_path=True)
-
-        # If UNIX, lib-prefix need to be added to plugin libraries which are intentially removed by Ogres build system
-        if self.settings.os != "Windows":
-            if self.options.codec_freeimage:
-                tools.rename("{}/lib/OGRE/Codec_FreeImage.so".format(self.package_folder), \
-                "{}/lib/OGRE/libCodec_FreeImage.so".format(self.package_folder))
-            if self.options.codec_stbi:
-                tools.rename("{}/lib/OGRE/Codec_STBI.so".format(self.package_folder), \
-                "{}/lib/OGRE/libCodec_STBI.so".format(self.package_folder))
-
-            if self.options.plugin_bsp_scenemanager:
-                tools.rename("{}/lib/OGRE/Plugin_BSPSceneManager.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_BSPSceneManager.so".format(self.package_folder))
-            if self.options.plugin_octree:
-                tools.rename("{}/lib/OGRE/Plugin_OctreeSceneManager.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_OctreeSceneManager.so".format(self.package_folder))
-            if self.options.plugin_particlefx:
-                tools.rename("{}/lib/OGRE/Plugin_ParticleFX.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_ParticleFX.so".format(self.package_folder))
-            if self.options.plugin_dotscene:
-                tools.rename("{}/lib/OGRE/Plugin_DotScene.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_DotScene.so".format(self.package_folder))
-            if self.options.with_cg:
-                tools.rename("{}/lib/OGRE/Plugin_CgProgramManager.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_CgProgramManager.so".format(self.package_folder))
-            if self.options.plugin_pcz_scenemanager:
-                tools.rename("{}/lib/OGRE/Plugin_PCZSceneManager.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_PCZSceneManager.so".format(self.package_folder))
-                tools.rename("{}/lib/OGRE/Plugin_OctreeZone.so".format(self.package_folder), \
-                "{}/lib/OGRE/libPlugin_OctreeZone.so".format(self.package_folder))
-
-            if self.options.opengl_renderer:
-                tools.rename("{}/lib/OGRE/RenderSystem_GL.so".format(self.package_folder), \
-                "{}/lib/OGRE/libRenderSystem_GL.so".format(self.package_folder))
-            if self.options.opengl3_renderer:
-                tools.rename("{}/lib/OGRE/RenderSystem_GL3Plus.so".format(self.package_folder), \
-                "{}/lib/OGRE/libRenderSystem_GL3Plus.so".format(self.package_folder))
-            if self.options.opengles_renderer:
-                tools.rename("{}/lib/OGRE/RenderSystem_GLES2.so".format(self.package_folder), \
-                "{}/lib/OGRE/libRenderSystem_GLES2.so".format(self.package_folder))
-
 
     def package_info(self):
         self.cpp_info.name = 'Ogre3D'
-        self.cpp_info.libdirs = ['lib', 'lib/OGRE']
-        libs = [
-            "OgreMain",
-            "OgreOverlay",
-            "OgrePaging",
-            "OgreProperty",
-            "OgreRTShaderSystem",
-            "OgreTerrain",
-            "OgreVolume",
-            "OgreMeshLodGenerator",
-        ]
+        self.cpp_info.libdirs = ['lib']
+        libs = ["OgreMain"]
 
-        if self.options.codec_freeimage:
-            libs.append("Codec_FreeImage")
-        if self.options.codec_stbi:
-            libs.append("Codec_STBI")
+        # TODO: Alternatively use bundled CMake configure?
+        # Explore it to see if it can be used or what must be included here.
+        self.cpp_info.includedirs.append("include/OGRE")
+        self.cpp_info.includedirs.append("include/OGRE/Threading")
 
-        if self.options.plugin_bsp_scenemanager:
-            libs.append("Plugin_BSPSceneManager")
-        if self.options.plugin_octree:
-            libs.append("Plugin_OctreeSceneManager")
-        if self.options.plugin_particlefx:
-            libs.append("Plugin_ParticleFX")
-        if self.options.plugin_dotscene:
-            libs.append("Plugin_DotScene")
-        if self.options.with_cg:
-            libs.append("Plugin_CgProgramManager")
-        if self.options.plugin_pcz_scenemanager:
-            libs.append("Plugin_PCZSceneManager")
-            libs.append("Plugin_OctreeZone")
-
-        if self.options.opengl_renderer:
-            libs.append("RenderSystem_GL")
-        if self.options.opengl3_renderer:
-            libs.append("RenderSystem_GL3Plus")
-        if self.settings.os == "Windows":
-            if self.options.direct3d9_renderer:
-                libs.append("RenderSystem_Direct3D9")
-            if self.options.direct3d11_renderer:
-                libs.append("RenderSystem_Direct3D11")
-        if self.options.opengles_renderer:
-            libs.append("RenderSystem_GLES2")
-        if self.options.opengl_renderer or self.options.opengl3_renderer or self.options.opengles_renderer:
-            libs.append("OgreGLSupport")
-
-        if self.options.bites:
+        include = "include/OGRE"
+        if self.options.component_bites:
+            self.cpp_info.includedirs.append(f"{include}/Bites")
             libs.append("OgreBites")
             if self.options.with_qt:
                 libs.append("OgreBitesQt")
 
-        self.cpp_info.includedirs.extend([
-            "include/OGRE",
-            "include/OGRE/Overlay",
-            "include/OGRE/Paging",
-            "include/OGRE/Property",
-            "include/OGRE/RTShaderSystem",
-            "include/OGRE/Terrain",
-            "include/OGRE/Volume",
-            "include/OGRE/Threading",
-            "include/OGRE/MeshLodGenerator",
-        ])
-        if self.options.bites:
-            self.cpp_info.includedirs.append("include/OGRE/Bites")
+        if self.options.component_meshlodgenerator:
+            self.cpp_info.includedirs.append(f"{include}/MeshLodGenerator")
+            libs.append("OgreMeshLodGenerator")
+        if self.options.component_overlay:
+            self.cpp_info.includedirs.append(f"{include}/Overlay")
+            libs.append("OgreOverlay")
+        if self.options.component_overlay_imgui:
+            # part of OgreOverlay
+            pass
+        if self.options.component_paging:
+            self.cpp_info.includedirs.append(f"{include}/Paging")
+            libs.append("OgrePaging")
+        if self.options.component_property:
+            self.cpp_info.includedirs.append(f"{include}/Property")
+            libs.append("OgreProperty")
+        if self.options.component_rtshadersystem:
+            self.cpp_info.includedirs.append(f"{include}/RTShaderSystem")
+            libs.append("OgreRTShaderSystem")
+        if self.options.component_terrain:
+            self.cpp_info.includedirs.append(f"{include}/Terrain")
+            libs.append("OgreTerrain")
+        if self.options.component_volume:
+            self.cpp_info.includedirs.append(f"{include}/Volume")
+            libs.append("OgreVolume")
 
-        if self.options.codec_freeimage:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/FreeImageCodec")
-        if self.options.codec_stbi:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/STBICodec")
-
-        if self.options.opengl_renderer:
-            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GL")
-            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GL/GL")
-        if self.options.opengl3_renderer:
-            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GL3Plus")
+        include_RS = "include/OGRE/RenderSystems"
         if self.settings.os == "Windows":
-            if self.options.direct3d9_renderer:
-                self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D9")
-            if self.options.direct3d11_renderer:
-                self.cpp_info.includedirs.append("include/OGRE/RenderSystems/Direct3D11")
-        if self.options.opengles_renderer:
-            self.cpp_info.includedirs.append("include/OGRE/RenderSystems/GLES2")
+            if self.options.rendersystem_direct3d9:
+                self.cpp_info.includedirs.append(f"{include_RS}/Direct3D9")
+            if self.options.rendersystem_direct3d11:
+                self.cpp_info.includedirs.append(f"{include_RS}/Direct3D11")
+        if self.options.rendersystem_opengl:
+            self.cpp_info.includedirs.append(f"{include_RS}/GL")
+            self.cpp_info.includedirs.append(f"{include_RS}/GL/GL")
+        if self.options.rendersystem_opengl3:
+            self.cpp_info.includedirs.append(f"{include_RS}/GL3Plus")
+        if self.options.rendersystem_opengles:
+            self.cpp_info.includedirs.append(f"{include_RS}/GLES2")
+        if self.options.rendersystem_vulkan:
+            self.cpp_info.includedirs.append(f"{include_RS}/Vulkan")
+        # Tiny requires libgomp, or OpenMP target to be linked. TODO
 
-        if self.options.plugin_bsp_scenemanager:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/BSPSceneManager")
-        if self.options.plugin_octree:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/OctreeSceneManager")
-        if self.options.plugin_particlefx:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/ParticleFX")
+        include_P = "include/OGRE/Plugins"
+        if self.options.plugin_assimp:
+            self.cpp_info.includedirs.append(f"{include_P}/Assimp")
+        if self.options.plugin_bsp:
+            self.cpp_info.includedirs.append(f"{include_P}/BSPSceneManager")
         if self.options.plugin_dotscene:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/DotScene")
-        if self.options.with_cg:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/CgProgramManager")
-        if self.options.plugin_pcz_scenemanager:
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/PCZSceneManager")
-            self.cpp_info.includedirs.append("include/OGRE/Plugins/OctreeZone")
-
-        if self.settings.compiler == "clang":
-            self.cpp_info.exelinkflags = ["-fopenmp=libomp"]
+            self.cpp_info.includedirs.append(f"{include_P}/DotScene")
+        if self.options.plugin_exrcodec:
+            self.cpp_info.includedirs.append(f"{include_P}/EXRCodec")
+        if self.options.plugin_freeimage:
+            self.cpp_info.includedirs.append(f"{include_P}/FreeImageCodec")
+        if self.options.plugin_glslang:
+            self.cpp_info.includedirs.append(f"{include_P}/GLSLang")
+        if self.options.plugin_octree:
+            self.cpp_info.includedirs.append(f"{include_P}/OctreeSceneManager")
+            self.cpp_info.includedirs.append(f"{include_P}/OctreeZone")
+        if self.options.plugin_pcz:
+            self.cpp_info.includedirs.append(f"{include_P}/PCZSceneManager")
+        if self.options.plugin_particlefx:
+            self.cpp_info.includedirs.append(f"{include_P}/ParticleFX")
+        if self.options.plugin_stbi:
+            self.cpp_info.includedirs.append(f"{include_P}/STBICodec")
 
         if self.settings.compiler == "Visual Studio" \
            and self.settings.build_type == "Debug":
