@@ -8,7 +8,7 @@ sources:
 dependencies:
   13.3.4:
     assimp: 5.2.2
-    egl: system      # not enough for gles2?
+    egl: system
     freeimage: 3.18.0@sintef/stable
     freetype: 2.11.1
     glslang: 11.7.0

@@ -114,6 +114,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
   - `plugins.cfg` may specify an absolute path to the plugin directory. It should be replaced with a relative path.
   - `install_samples=True` are not fully relocatable, an entry in `samples.cfg` must point to the absolute path of the sample library.
   - Some disabled features may detect system-installed requirements and enabled even if they are specified to be disabled in the recipe
+  - OpenGL ES dependencies are not handled by the recipe. The need to by system installed
 
 ## Non-exposed Ogre configuration
 

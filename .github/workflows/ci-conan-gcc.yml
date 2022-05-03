@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         version: [13.3.4]
-        compiler_version: [7, 8, 9, 10, 11]
+        compiler_version: [8, 9, 10, 11]
         build_type: [Debug, Release]
         os: [ubuntu-20.04]
     container:
