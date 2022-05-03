@@ -24,8 +24,8 @@ jobs:
         version: [13.3.4]
         compiler_toolset: [v141, v142, v143]
         build_type: [Debug, Release]
-        compiler_version: [16]
-        os: [windows-2019]
+        compiler_version: [17]
+        os: [windows-2022]
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
