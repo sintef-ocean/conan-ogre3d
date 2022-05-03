@@ -129,14 +129,17 @@ class Ogre3dConan(ConanFile):
             self.requires(f"qt/{deps['qt']}", private=True)
         if self.options.rendersystem_opengl:
             self.requires(f"opengl/{deps['opengl']}")
-            self.requires(f"egl/{deps['egl']}")
+            if self.settings.os != "Windows":
+                self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_opengl3:
             self.requires(f"opengl/{deps['opengl']}")
-            self.requires(f"egl/{deps['egl']}")
+            if self.settings.os != "Windows":
+                self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_opengles:
             self.output.warn("OpenGL ES requirement not handled by conan")
-            self.requires(f"egl/{deps['egl']}")
             # debian: libgles2-mesa-dev
+            if self.settings.os != "Windows":
+                self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_tiny and self.settings.os != "Windows":
             self.requires(f"llvm-openmp/{deps['llvm-openmp']}", private=True)
         if self.options.rendersystem_vulkan:

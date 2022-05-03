@@ -45,4 +45,4 @@ jobs:
             . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
-          conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 10 --retry-wait 20 --force
+          conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 15 --retry-wait 25 --force
