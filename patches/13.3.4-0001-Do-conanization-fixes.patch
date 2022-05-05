@@ -1,4 +1,4 @@
-From 948a452a221795ab9f11259ab6fe33013aed7f38 Mon Sep 17 00:00:00 2001
+From 92e139d0f189bc65d0dfd7aef8698292a43cdf7b Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
 Date: Sun, 1 May 2022 11:06:31 +0200
 Subject: [PATCH] Do conanization fixes
@@ -14,6 +14,7 @@ Subject: [PATCH] Do conanization fixes
  Components/Overlay/CMakeLists.txt             |    6 +-
  Components/Python/CMakeLists.txt              |    2 +-
  OgreMain/CMakeLists.txt                       |    1 -
+ OgreMain/include/OgreMath.h                   |    4 +-
  OgreMain/src/OgreDeflate.cpp                  |    2 +-
  OgreMain/src/OgreZip.cpp                      |    2 +-
  OgreMain/src/zip/Ogre_zip.h                   |  443 +
@@ -34,7 +35,7 @@ Subject: [PATCH] Do conanization fixes
  Tests/OgreMain/src/General.cpp                |   22 +-
  Tests/OgreMain/src/QuaternionTests.cpp        |    2 +-
  Tools/XMLConverter/CMakeLists.txt             |    2 +-
- 30 files changed, 10518 insertions(+), 10472 deletions(-)
+ 31 files changed, 10520 insertions(+), 10474 deletions(-)
  create mode 100644 OgreMain/src/zip/Ogre_zip.h
  create mode 100644 OgreMain/src/zip/Ogreminiz.h
  delete mode 100644 OgreMain/src/zip/miniz.h
@@ -333,6 +334,28 @@ index 44a177874..06326c1e2 100644
    list(APPEND HEADER_FILES include/OgreZip.h)
    list(APPEND SOURCE_FILES src/OgreZip.cpp src/zip/zip.c)
  
+diff --git a/OgreMain/include/OgreMath.h b/OgreMain/include/OgreMath.h
+index 288f0ae3d..9e8b8b56e 100644
+--- a/OgreMain/include/OgreMath.h
++++ b/OgreMain/include/OgreMath.h
+@@ -358,7 +358,7 @@ namespace Ogre
+         static inline Real Log (Real fValue) { return std::log(fValue); }
+ 
+         /// Stored value of log(2) for frequent use
+-        static constexpr Real LOG2 = 0.69314718055994530942;
++        static constexpr Real LOG2 = Real(0.69314718055994530942);
+ 
+         static inline Real Log2 (Real fValue) { return std::log2(fValue); }
+ 
+@@ -740,7 +740,7 @@ namespace Ogre
+ 
+         static constexpr Real POS_INFINITY = std::numeric_limits<Real>::infinity();
+         static constexpr Real NEG_INFINITY = -std::numeric_limits<Real>::infinity();
+-        static constexpr Real PI = 3.14159265358979323846;
++        static constexpr Real PI = Real(3.14159265358979323846);
+         static constexpr Real TWO_PI = Real( 2.0 * PI );
+         static constexpr Real HALF_PI = Real( 0.5 * PI );
+         static constexpr float fDeg2Rad = PI / Real(180.0);
 diff --git a/OgreMain/src/OgreDeflate.cpp b/OgreMain/src/OgreDeflate.cpp
 index b975c753b..8c6b61c3f 100644
 --- a/OgreMain/src/OgreDeflate.cpp
