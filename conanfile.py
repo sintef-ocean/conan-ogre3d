@@ -4,7 +4,7 @@ from conans import ConanFile, CMake, tools
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
     license = "MIT"
-    #version = "13.3.4"
+    # version = "13.3.4"  # uncomment to "enable package development flow"
     author = "SINTEF Ocean"
     url = "https://github.com/sintef-ocean/conan-ogre3d"
     description = "3D graphics rendering engine"
@@ -74,7 +74,7 @@ class Ogre3dConan(ConanFile):
         "bindings_csharp": False,
         "bindings_java": False,
         "bindings_python": False,
-        "rendersystem_direct3d11": False,
+        "rendersystem_direct3d11": True,
         "rendersystem_direct3d9": False,
         "rendersystem_metal": False,
         "rendersystem_opengl": False,
@@ -125,7 +125,6 @@ class Ogre3dConan(ConanFile):
         if self.options.with_qt:
             self.output.warn("Qt dependency handling may not work")
             # Qt 6 not working on linux, but when it do: remember to set correct QT_VERSION_MAJOR in patch
-            self.output.warn("install_tools and with_qt produce a linker error for SampleBrowser (png and BZ2 undefined references)")
             self.requires(f"qt/{deps['qt']}", private=True)
         if self.options.rendersystem_opengl:
             self.requires(f"opengl/{deps['opengl']}")
@@ -145,7 +144,6 @@ class Ogre3dConan(ConanFile):
         if self.options.rendersystem_vulkan:
             self.requires(f"vulkan-loader/{deps['vulkan-loader']}", private=True)
 
-        # figure out what is private requirements (i.e. hidden)
         if self.options.plugin_assimp:
             self.requires(f"assimp/{deps['assimp']}", private=False)
         if self.options.plugin_exrcodec:
@@ -184,6 +182,11 @@ class Ogre3dConan(ConanFile):
         for patch in self.conan_data.get("patches", {}).get(self.version, []):
             tools.patch(**patch)
 
+    def config_options(self):
+        if self.settings.os != "Windows":
+            del self.options.rendersystem_direct3d9
+            del self.options.rendersystem_direct3d11
+
     def configure(self):
         self.options["freetype"].shared = False
         self.options["assimp"].shared = False
@@ -195,8 +198,9 @@ class Ogre3dConan(ConanFile):
             self.options["llvm-openmp"].fPIC = True
 
         if self.options.install_samples:
-            self.output.info("Samples requires with_sdl=True")
-            self.options.with_sdl = True
+            if not self.options.with_qt or not self.options.with_sdl:
+                self.output.info("Samples requires with_qt or with_sdl, selecting with_sdl=True")
+                self.options.with_sdl = True
 
     def _configure_cmake(self):
         if not self._cmake:
@@ -204,9 +208,10 @@ class Ogre3dConan(ConanFile):
             defs = dict()
 
             defs['CMAKE_POSITION_INDEPENDENT_CODE'] = True
-            defs["OGRE_BUILD_DEPENDENCIES"] = False  # use conan libs
+            defs["OGRE_BUILD_DEPENDENCIES"] = False  # Use conan libs instead
             defs["OGRE_COPY_DEPENDENCIES"] = False
             defs["OGRE_INSTALL_DEPENDENCIES"] = False
+            defs["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # subject to change
             defs["OGRE_WITH_FREETYPE"] = self.options.with_freetype
 
             renderers = "OGRE_BUILD_RENDERSYSTEM"
@@ -296,8 +301,7 @@ class Ogre3dConan(ConanFile):
         self.cpp_info.libdirs = ['lib']
         libs = ["OgreMain"]
 
-        # TODO: Alternatively use bundled CMake configure?
-        # Explore it to see if it can be used or what must be included here.
+        # TODO: support components and closer mirror Ogre's cmake configure script
         self.cpp_info.includedirs.append("include/OGRE")
         self.cpp_info.includedirs.append("include/OGRE/Threading")
 
@@ -314,9 +318,6 @@ class Ogre3dConan(ConanFile):
         if self.options.component_overlay:
             self.cpp_info.includedirs.append(f"{include}/Overlay")
             libs.append("OgreOverlay")
-        if self.options.component_overlay_imgui:
-            # part of OgreOverlay
-            pass
         if self.options.component_paging:
             self.cpp_info.includedirs.append(f"{include}/Paging")
             libs.append("OgrePaging")
@@ -348,7 +349,6 @@ class Ogre3dConan(ConanFile):
             self.cpp_info.includedirs.append(f"{include_RS}/GLES2")
         if self.options.rendersystem_vulkan:
             self.cpp_info.includedirs.append(f"{include_RS}/Vulkan")
-        # Tiny requires libgomp, or OpenMP target to be linked. TODO
 
         include_P = "include/OGRE/Plugins"
         if self.options.plugin_assimp:

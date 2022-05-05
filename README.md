@@ -64,7 +64,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
 | bindings_csharp                 | [True, False]      | False  |
 | bindings_java                   | [True, False]      | False  |
 | bindings_python                 | [True, False]      | False  |
-| rendersystem_direct3d11         | [True, False]      | False  |
+| rendersystem_direct3d11         | [True, False]      | True   |
 | rendersystem_direct3d9          | [True, False]      | False  |
 | rendersystem_metal              | [True, False]      | False  |
 | rendersystem_opengl             | [True, False]      | False  |
@@ -110,9 +110,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
   The recipe is only tested on Windows and Linux. It will probably not work for Emscripten
   and Android and other platforms.
-  - The package executables and libraries are not relocatable, i.e. the runpaths are not stripped and contain absolute paths.
-  - `plugins.cfg` may specify an absolute path to the plugin directory. It should be replaced with a relative path.
-  - `install_samples=True` are not fully relocatable, an entry in `samples.cfg` must point to the absolute path of the sample library.
+  - The runpaths are not stripped and contain absolute paths. RPATH should be stripped
   - Some disabled features may detect system-installed requirements and enabled even if they are specified to be disabled in the recipe
   - OpenGL ES dependencies are not handled by the recipe. The need to by system installed
 

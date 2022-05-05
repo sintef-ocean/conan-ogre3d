@@ -1,13 +1,17 @@
-From ec6027e1d221d90af6d9ca6a1873db6741bcd419 Mon Sep 17 00:00:00 2001
+From 948a452a221795ab9f11259ab6fe33013aed7f38 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
 Date: Sun, 1 May 2022 11:06:31 +0200
 Subject: [PATCH] Do conanization fixes
 
 ---
  CMake/Dependencies.cmake                      |   57 +-
+ CMake/InstallResources.cmake                  |   12 +-
+ CMake/Templates/OgreConfigPaths.h.in          |    6 +-
  CMakeLists.txt                                |    5 +-
+ Components/Bites/src/OgreGLXConfigDialog.cpp  |    2 +-
  Components/Csharp/CMakeLists.txt              |    2 +-
  Components/Java/CMakeLists.txt                |    2 +-
+ Components/Overlay/CMakeLists.txt             |    6 +-
  Components/Python/CMakeLists.txt              |    2 +-
  OgreMain/CMakeLists.txt                       |    1 -
  OgreMain/src/OgreDeflate.cpp                  |    2 +-
@@ -26,10 +30,11 @@ Subject: [PATCH] Do conanization fixes
  RenderSystems/Vulkan/CMakeLists.txt           |    4 +-
  .../Vulkan/include/OgreVulkanRenderSystem.h   |    2 +-
  .../Vulkan/src/OgreVulkanRenderSystem.cpp     |    2 +-
+ Samples/Browser/include/SampleBrowser.h       |    9 +-
  Tests/OgreMain/src/General.cpp                |   22 +-
  Tests/OgreMain/src/QuaternionTests.cpp        |    2 +-
  Tools/XMLConverter/CMakeLists.txt             |    2 +-
- 25 files changed, 10495 insertions(+), 10460 deletions(-)
+ 30 files changed, 10518 insertions(+), 10472 deletions(-)
  create mode 100644 OgreMain/src/zip/Ogre_zip.h
  create mode 100644 OgreMain/src/zip/Ogreminiz.h
  delete mode 100644 OgreMain/src/zip/miniz.h
@@ -164,6 +169,66 @@ index b80742a13..68b023c45 100644
 -find_package(Softimage)
 +find_package(Softimage QUIET)
  macro_log_feature(Softimage_FOUND "Softimage" "Softimage SDK needed for building XSIExporter" "")
+diff --git a/CMake/InstallResources.cmake b/CMake/InstallResources.cmake
+index cfe7db3ce..90226f3ef 100644
+--- a/CMake/InstallResources.cmake
++++ b/CMake/InstallResources.cmake
+@@ -24,7 +24,7 @@ if (NOT OGRE_MEDIA_PATH)
+     endif()
+   elseif (UNIX)
+     set(OGRE_MEDIA_PATH "share/OGRE/Media")
+-    set(OGRE_MEDIA_DIR_REL "./Media")
++    set(OGRE_MEDIA_DIR_REL "Media")
+   endif()
+ else ()
+   set(OGRE_MEDIA_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_MEDIA_PATH}")
+@@ -33,16 +33,16 @@ endif()
+ if (NOT OGRE_PLUGINS_PATH)
+   if (WIN32)
+     set(OGRE_PLUGINS_PATH "${OGRE_BIN_DIRECTORY}")
+-    set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_BIN_DIRECTORY}")
++    set(OGRE_PLUGIN_DIR_REL "../${OGRE_BIN_DIRECTORY}")
+   else ()
+     set(OGRE_PLUGINS_PATH "${OGRE_LIB_DIRECTORY}/OGRE")
+-    set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}/OGRE")
++    set(OGRE_PLUGIN_DIR_REL "../../${OGRE_LIB_DIRECTORY}/OGRE")
+   endif()
+ else ()
+   set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_PLUGINS_PATH}")
+ endif()
+ 
+-if (NOT OGRE_CFG_INSTALL_PATH)
++if (NOT OGRE_CFG_INSTALL_PATH) # relative to root
+   if (WIN32 OR APPLE)
+     set(OGRE_CFG_INSTALL_PATH "${OGRE_BIN_DIRECTORY}")
+   elseif (UNIX)
+@@ -63,8 +63,8 @@ elseif (APPLE)
+   set(OGRE_SAMPLES_DIR_REL "Contents/Plugins/")
+   set(OGRE_CFG_INSTALL_PATH "bin")
+ elseif (UNIX)
+-  set(OGRE_TEST_MEDIA_DIR_REL "${CMAKE_INSTALL_PREFIX}/Tests/Media")
+-  set(OGRE_SAMPLES_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}/OGRE/Samples")
++  set(OGRE_TEST_MEDIA_DIR_REL "../../Tests/Media")
++  set(OGRE_SAMPLES_DIR_REL "../../${OGRE_LIB_DIRECTORY}/OGRE/Samples")
+ endif ()
+ 
+ # generate OgreConfigPaths.h
+diff --git a/CMake/Templates/OgreConfigPaths.h.in b/CMake/Templates/OgreConfigPaths.h.in
+index d51aab547..f8e058df2 100644
+--- a/CMake/Templates/OgreConfigPaths.h.in
++++ b/CMake/Templates/OgreConfigPaths.h.in
+@@ -1,8 +1,8 @@
+ #ifndef OGRECONFIGPATHS_H_
+ #define OGRECONFIGPATHS_H_
+ 
+-#define OGRE_CONFIG_DIR "@CMAKE_INSTALL_PREFIX@/@OGRE_CFG_INSTALL_PATH@"
+-#define OGRE_MEDIA_DIR "@CMAKE_INSTALL_PREFIX@/@OGRE_MEDIA_PATH@"
+-#define OGRE_PLUGIN_DIR "@OGRE_PLUGIN_DIR_REL@" 
++#define OGRE_CONFIG_DIR "@OGRE_CFG_INSTALL_PATH@"
++#define OGRE_MEDIA_DIR "@OGRE_MEDIA_DIR_REL@"
++#define OGRE_PLUGIN_DIR "@OGRE_PLUGIN_DIR_REL@"
+ 
+ #endif /* OGRECONFIGPATHS_H_ */
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 761a9d232..9e9f7a5e7 100644
 --- a/CMakeLists.txt
@@ -187,6 +252,19 @@ index 761a9d232..9e9f7a5e7 100644
  cmake_dependent_option(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI "Include dear imgui in Overlays" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
  
  cmake_dependent_option(OGRE_BUILD_COMPONENT_BITES "Build OgreBites component" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
+diff --git a/Components/Bites/src/OgreGLXConfigDialog.cpp b/Components/Bites/src/OgreGLXConfigDialog.cpp
+index 9ce1157e3..060c95bcc 100644
+--- a/Components/Bites/src/OgreGLXConfigDialog.cpp
++++ b/Components/Bites/src/OgreGLXConfigDialog.cpp
+@@ -337,7 +337,7 @@ Pixmap GLXConfigurator::CreateBackdrop(Window rootWindow, int depth) {
+         Image img;
+ 
+         // Load backdrop image using OGRE
+-        String path = FileSystemLayer::resolveBundlePath(OGRE_MEDIA_DIR "/../GLX_backdrop.png");
++        String path = FileSystemLayer::resolveBundlePath("../" OGRE_CONFIG_DIR "/GLX_backdrop.png");
+         DataStreamPtr imgStreamPtr = Root::openFileStream(path);
+         img.load(imgStreamPtr, "png");
+ 
 diff --git a/Components/Csharp/CMakeLists.txt b/Components/Csharp/CMakeLists.txt
 index da6cd17ee..71cf9870b 100644
 --- a/Components/Csharp/CMakeLists.txt
@@ -213,6 +291,23 @@ index c694685ef..5e4e7a879 100644
  
  if(MSVC)
  	add_definitions(/bigobj /wd4700)
+diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
+index ec67ef51a..5130a2d56 100644
+--- a/Components/Overlay/CMakeLists.txt
++++ b/Components/Overlay/CMakeLists.txt
+@@ -46,7 +46,11 @@ endif()
+ add_library(OgreOverlay ${OGRE_COMP_LIB_TYPE} ${HEADER_FILES} ${SOURCE_FILES})
+ set_target_properties(OgreOverlay PROPERTIES VERSION ${OGRE_SOVERSION} SOVERSION ${OGRE_SOVERSION})
+ target_link_libraries(OgreOverlay PUBLIC OgreMain)
+-target_include_directories(OgreOverlay PUBLIC 
++if(Qt6_FOUND OR Qt5_FOUND)
++  # workaround a linking issue with BitesQt
++  target_link_libraries(OgreOverlay PUBLIC PNG::PNG BZip2::BZip2)
++endif()
++target_include_directories(OgreOverlay PUBLIC
+   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+   $<INSTALL_INTERFACE:include/OGRE/Overlay>)
+ 
 diff --git a/Components/Python/CMakeLists.txt b/Components/Python/CMakeLists.txt
 index 825ba1711..effaf8f16 100644
 --- a/Components/Python/CMakeLists.txt
@@ -21258,6 +21353,33 @@ index 0fbc98352..19c27ef3c 100644
                                                unsigned short stencil)
      {
          mCurrentRenderPassDescriptor->setClearColour(colour);
+diff --git a/Samples/Browser/include/SampleBrowser.h b/Samples/Browser/include/SampleBrowser.h
+index 85d3bd786..fbd94edf7 100644
+--- a/Samples/Browser/include/SampleBrowser.h
++++ b/Samples/Browser/include/SampleBrowser.h
+@@ -32,6 +32,7 @@
+ #include "SamplePlugin.h"
+ #include "OgreTrays.h"
+ #include "OgreConfigFile.h"
++#include "OgreConfigPaths.h"
+ #include "OgreTechnique.h"
+ #include "OgreArchiveManager.h"
+ #include "SdkSample.h"
+@@ -875,7 +876,13 @@ namespace OgreBites
+             Ogre::Archive* apk = Ogre::ArchiveManager::getSingleton().load("", "APKFileSystem", true);
+             cfg.load(apk->open(mFSLayer->getConfigFilePath("samples.cfg")));
+ #   else
+-            cfg.load(mFSLayer->getConfigFilePath("samples.cfg"));
++            Ogre::String samplescfg("samples.cfg");
++            if (!Ogre::FileSystemLayer::fileExists(samplescfg))
++            {
++              samplescfg = Ogre::FileSystemLayer::resolveBundlePath(OGRE_CONFIG_DIR "/samples.cfg");
++            }
++            cfg.load(mFSLayer->getConfigFilePath(samplescfg));
++
+ #   endif
+ 
+             Ogre::String sampleDir = cfg.getSetting("SampleFolder");        // Mac OS X just uses Resources/ directory
 diff --git a/Tests/OgreMain/src/General.cpp b/Tests/OgreMain/src/General.cpp
 index 129225ca7..8d43b3905 100644
 --- a/Tests/OgreMain/src/General.cpp

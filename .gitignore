@@ -4,3 +4,4 @@ test_package/build/
 *.swp
 *.swo
 __pycache__
+temp/
