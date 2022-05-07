@@ -1,13 +1,13 @@
-From 92e139d0f189bc65d0dfd7aef8698292a43cdf7b Mon Sep 17 00:00:00 2001
+From 84a0a247c0a1ab27d8fb138b111211ccfb0104d1 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
 Date: Sun, 1 May 2022 11:06:31 +0200
 Subject: [PATCH] Do conanization fixes
 
 ---
- CMake/Dependencies.cmake                      |   57 +-
+ CMake/Dependencies.cmake                      |   63 +-
  CMake/InstallResources.cmake                  |   12 +-
  CMake/Templates/OgreConfigPaths.h.in          |    6 +-
- CMakeLists.txt                                |    5 +-
+ CMakeLists.txt                                |    6 +-
  Components/Bites/src/OgreGLXConfigDialog.cpp  |    2 +-
  Components/Csharp/CMakeLists.txt              |    2 +-
  Components/Java/CMakeLists.txt                |    2 +-
@@ -35,14 +35,14 @@ Subject: [PATCH] Do conanization fixes
  Tests/OgreMain/src/General.cpp                |   22 +-
  Tests/OgreMain/src/QuaternionTests.cpp        |    2 +-
  Tools/XMLConverter/CMakeLists.txt             |    2 +-
- 31 files changed, 10520 insertions(+), 10474 deletions(-)
+ 31 files changed, 10526 insertions(+), 10475 deletions(-)
  create mode 100644 OgreMain/src/zip/Ogre_zip.h
  create mode 100644 OgreMain/src/zip/Ogreminiz.h
  delete mode 100644 OgreMain/src/zip/miniz.h
  delete mode 100644 OgreMain/src/zip/zip.h
 
 diff --git a/CMake/Dependencies.cmake b/CMake/Dependencies.cmake
-index b80742a13..68b023c45 100644
+index b80742a13..eea356ddd 100644
 --- a/CMake/Dependencies.cmake
 +++ b/CMake/Dependencies.cmake
 @@ -65,8 +65,10 @@ if (UNIX AND NOT EMSCRIPTEN)
@@ -151,19 +151,25 @@ index b80742a13..68b023c45 100644
    macro_log_feature(SDL2_FOUND "SDL2" "Simple DirectMedia Library needed for input handling in samples" "https://www.libsdl.org/")
    if(SDL2_FOUND AND NOT TARGET SDL2::SDL2)
      add_library(SDL2::SDL2 INTERFACE IMPORTED)
-@@ -279,8 +285,9 @@ if(NOT ANDROID AND NOT EMSCRIPTEN)
+@@ -279,9 +285,14 @@ if(NOT ANDROID AND NOT EMSCRIPTEN)
      )
    endif()
  
 -  find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui QUIET CONFIG)
 -  find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui QUIET CONFIG)
-+  set(QT_VERSION_MAJOR 5)
-+  find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui QUIET)
-+  find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui QUIET)
- 
+-
++  if(OGRE_WITH_QT)
++    set(QT_VERSION_MAJOR 5)
++    find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui QUIET)
++    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui QUIET)
++    set(QT_FOUND ON)
++  else()
++    set(QT_FOUND OFF)
++  endif()
    macro_log_feature(QT_FOUND "Qt" "optional integration with the Qt Library for window creation and input" "http://www.qt.io/")
  endif()
-@@ -293,5 +300,5 @@ find_package(Doxygen QUIET)
+ 
+@@ -293,5 +304,5 @@ find_package(Doxygen QUIET)
  macro_log_feature(DOXYGEN_FOUND "Doxygen" "Tool for building API documentation" "http://doxygen.org")
  
  # Find Softimage SDK
@@ -231,7 +237,7 @@ index d51aab547..f8e058df2 100644
  
  #endif /* OGRECONFIGPATHS_H_ */
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 761a9d232..9e9f7a5e7 100644
+index 761a9d232..b69e92980 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -68,6 +68,9 @@ if (APPLE AND NOT ANDROID)
@@ -244,12 +250,13 @@ index 761a9d232..9e9f7a5e7 100644
  
  # extra version info
  set(OGRE_VERSION_SUFFIX "")
-@@ -337,7 +340,7 @@ cmake_dependent_option(OGRE_BUILD_COMPONENT_PROPERTY "Build Property component"
+@@ -337,7 +340,8 @@ cmake_dependent_option(OGRE_BUILD_COMPONENT_PROPERTY "Build Property component"
  cmake_dependent_option(OGRE_BUILD_PLUGIN_CG "Build Cg plugin" TRUE "Cg_FOUND;NOT APPLE_IOS;NOT WINDOWS_STORE;NOT WINDOWS_PHONE" FALSE)
  option(OGRE_BUILD_PLUGIN_GLSLANG "Build glslang plugin" ${OGRE_BUILD_RENDERSYSTEM_VULKAN}) # no way to determine whether glslang is present
  option(OGRE_BUILD_COMPONENT_OVERLAY "Build Overlay component" TRUE)
 -
 +option(OGRE_WITH_FREETYPE "Build with freetype" FALSE)
++option(OGRE_WITH_QT "Build with QT support" FALSE)
  cmake_dependent_option(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI "Include dear imgui in Overlays" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
  
  cmake_dependent_option(OGRE_BUILD_COMPONENT_BITES "Build OgreBites component" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
@@ -293,7 +300,7 @@ index c694685ef..5e4e7a879 100644
  if(MSVC)
  	add_definitions(/bigobj /wd4700)
 diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
-index ec67ef51a..5130a2d56 100644
+index ec67ef51a..dbdb9f371 100644
 --- a/Components/Overlay/CMakeLists.txt
 +++ b/Components/Overlay/CMakeLists.txt
 @@ -46,7 +46,11 @@ endif()
@@ -301,7 +308,7 @@ index ec67ef51a..5130a2d56 100644
  set_target_properties(OgreOverlay PROPERTIES VERSION ${OGRE_SOVERSION} SOVERSION ${OGRE_SOVERSION})
  target_link_libraries(OgreOverlay PUBLIC OgreMain)
 -target_include_directories(OgreOverlay PUBLIC 
-+if(Qt6_FOUND OR Qt5_FOUND)
++if(OGRE_WITH_QT)
 +  # workaround a linking issue with BitesQt
 +  target_link_libraries(OgreOverlay PUBLIC PNG::PNG BZip2::BZip2)
 +endif()

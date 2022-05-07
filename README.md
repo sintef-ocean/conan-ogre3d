@@ -112,6 +112,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
   and Android and other platforms.
   - The runpaths are not stripped and contain absolute paths. RPATH should be stripped
   - Some disabled features may detect system-installed requirements and enabled even if they are specified to be disabled in the recipe
+    - This may cause downstream issues if you create a library which requires ogre3d.
   - OpenGL ES dependencies are not handled by the recipe. The need to by system installed
 
 ## Non-exposed Ogre configuration

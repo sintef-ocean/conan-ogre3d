@@ -213,6 +213,8 @@ class Ogre3dConan(ConanFile):
             defs["OGRE_INSTALL_DEPENDENCIES"] = False
             defs["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # subject to change
             defs["OGRE_WITH_FREETYPE"] = self.options.with_freetype
+            defs["OGRE_WITH_QT"] = self.options.with_qt
+            # defs["OGRE_WITH_SDL"] = self.options.with_sdl # Todo: include this
 
             renderers = "OGRE_BUILD_RENDERSYSTEM"
             if self.settings.os == "Windows":
