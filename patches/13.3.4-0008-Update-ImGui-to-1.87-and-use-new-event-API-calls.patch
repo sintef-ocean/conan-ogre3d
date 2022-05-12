@@ -1,0 +1,302 @@
+From 897dcf9e33b76c143ed3733a1cd9002173f17799 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@gmail.com>
+Date: Thu, 12 May 2022 13:30:59 +0200
+Subject: [PATCH] Update ImGui to 1.87 and use new event API calls
+
+---
+ .../Bites/src/OgreImGuiInputListener.cpp      | 184 ++++++++++++++----
+ Components/Overlay/CMakeLists.txt             |   9 +-
+ 2 files changed, 147 insertions(+), 46 deletions(-)
+
+diff --git a/Components/Bites/src/OgreImGuiInputListener.cpp b/Components/Bites/src/OgreImGuiInputListener.cpp
+index 59b51bb48..c26211095 100644
+--- a/Components/Bites/src/OgreImGuiInputListener.cpp
++++ b/Components/Bites/src/OgreImGuiInputListener.cpp
+@@ -28,6 +28,128 @@ static int kc2sc(int kc)
+     return kc & ~(1 << 30);
+ }
+ 
++// OgreBites-supported SDL2 keycodes to ImGuiKey code
++// origin: https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_sdl.cpp
++static ImGuiKey SDL2_KeycodeToImGuiKey(int keycode)
++{
++    switch (keycode)
++    {
++        case OgreBites::SDLK_LEFT: return ImGuiKey_LeftArrow;
++        case OgreBites::SDLK_RIGHT: return ImGuiKey_RightArrow;
++        case OgreBites::SDLK_UP: return ImGuiKey_UpArrow;
++        case OgreBites::SDLK_DOWN: return ImGuiKey_DownArrow;
++        case OgreBites::SDLK_PAGEUP: return ImGuiKey_PageUp;
++        case OgreBites::SDLK_PAGEDOWN: return ImGuiKey_PageDown;
++        case OgreBites::SDLK_HOME: return ImGuiKey_Home;
++        case OgreBites::SDLK_END: return ImGuiKey_End;
++        case OgreBites::SDLK_INSERT: return ImGuiKey_Insert;
++        case OgreBites::SDLK_DELETE: return ImGuiKey_Delete;
++        case OgreBites::SDLK_SPACE: return ImGuiKey_Space;
++        case OgreBites::SDLK_RETURN: return ImGuiKey_Enter;
++        case OgreBites::SDLK_ESCAPE: return ImGuiKey_Escape;
++        case OgreBites::SDLK_SCROLLLOCK: return ImGuiKey_ScrollLock;
++        case OgreBites::SDLK_NUMLOCKCLEAR: return ImGuiKey_NumLock;
++        case OgreBites::SDLK_PRINTSCREEN: return ImGuiKey_PrintScreen;
++        case OgreBites::SDLK_PAUSE: return ImGuiKey_Pause;
++        case OgreBites::SDLK_KP_0: return ImGuiKey_Keypad0;
++        case OgreBites::SDLK_KP_1: return ImGuiKey_Keypad1;
++        case OgreBites::SDLK_KP_2: return ImGuiKey_Keypad2;
++        case OgreBites::SDLK_KP_3: return ImGuiKey_Keypad3;
++        case OgreBites::SDLK_KP_4: return ImGuiKey_Keypad4;
++        case OgreBites::SDLK_KP_5: return ImGuiKey_Keypad5;
++        case OgreBites::SDLK_KP_6: return ImGuiKey_Keypad6;
++        case OgreBites::SDLK_KP_7: return ImGuiKey_Keypad7;
++        case OgreBites::SDLK_KP_8: return ImGuiKey_Keypad8;
++        case OgreBites::SDLK_KP_9: return ImGuiKey_Keypad9;
++        case OgreBites::SDLK_KP_PERIOD: return ImGuiKey_KeypadDecimal;
++        case OgreBites::SDLK_KP_DIVIDE: return ImGuiKey_KeypadDivide;
++        case OgreBites::SDLK_KP_MULTIPLY: return ImGuiKey_KeypadMultiply;
++        case OgreBites::SDLK_KP_MINUS: return ImGuiKey_KeypadSubtract;
++        case OgreBites::SDLK_KP_PLUS: return ImGuiKey_KeypadAdd;
++        case OgreBites::SDLK_KP_ENTER: return ImGuiKey_KeypadEnter;
++        case OgreBites::SDLK_LSHIFT: return ImGuiKey_LeftShift;
++        case OgreBites::SDLK_F1: return ImGuiKey_F1;
++        case OgreBites::SDLK_F2: return ImGuiKey_F2;
++        case OgreBites::SDLK_F3: return ImGuiKey_F3;
++        case OgreBites::SDLK_F4: return ImGuiKey_F4;
++        case OgreBites::SDLK_F5: return ImGuiKey_F5;
++        case OgreBites::SDLK_F6: return ImGuiKey_F6;
++        case OgreBites::SDLK_F7: return ImGuiKey_F7;
++        case OgreBites::SDLK_F8: return ImGuiKey_F8;
++        case OgreBites::SDLK_F9: return ImGuiKey_F9;
++        case OgreBites::SDLK_F10: return ImGuiKey_F10;
++        case OgreBites::SDLK_F11: return ImGuiKey_F11;
++        case OgreBites::SDLK_F12: return ImGuiKey_F12;
++        // These are currently not defined in OgreBites and not captures from scancodes
++        //case SDLK_QUOTE: return ImGuiKey_Apostrophe;
++        //case SDLK_COMMA: return ImGuiKey_Comma;
++        //case SDLK_MINUS: return ImGuiKey_Minus;
++        //case SDLK_PERIOD: return ImGuiKey_Period;
++        //case SDLK_SLASH: return ImGuiKey_Slash;
++        //case SDLK_SEMICOLON: return ImGuiKey_Semicolon;
++        //case SDLK_EQUALS: return ImGuiKey_Equal;
++        //case SDLK_LEFTBRACKET: return ImGuiKey_LeftBracket;
++        //case SDLK_BACKSLASH: return ImGuiKey_Backslash;
++        //case SDLK_RIGHTBRACKET: return ImGuiKey_RightBracket;
++        //case SDLK_BACKQUOTE: return ImGuiKey_GraveAccent;
++        //case SDLK_CAPSLOCK: return ImGuiKey_CapsLock;
++        //case SDLK_KP_EQUALS: return ImGuiKey_KeypadEqual;
++        //case SDLK_LCTRL: return ImGuiKey_LeftCtrl;
++        //case SDLK_LALT: return ImGuiKey_LeftAlt;
++        //case SDLK_LGUI: return ImGuiKey_LeftSuper;
++        //case SDLK_RCTRL: return ImGuiKey_RightCtrl;
++        //case SDLK_RSHIFT: return ImGuiKey_RightShift;
++        //case SDLK_RALT: return ImGuiKey_RightAlt;
++        //case SDLK_RGUI: return ImGuiKey_RightSuper;
++        //case SDLK_APPLICATION: return ImGuiKey_Menu;
++    }
++
++    // Scancode to ImGuiKey
++    switch(kc2sc(keycode))
++    {
++        case '\t': return ImGuiKey_Tab;
++        case '\b': return ImGuiKey_Backspace;
++        case '0': return ImGuiKey_0;
++        case '1': return ImGuiKey_1;
++        case '2': return ImGuiKey_2;
++        case '3': return ImGuiKey_3;
++        case '4': return ImGuiKey_4;
++        case '5': return ImGuiKey_5;
++        case '6': return ImGuiKey_6;
++        case '7': return ImGuiKey_7;
++        case '8': return ImGuiKey_8;
++        case '9': return ImGuiKey_9;
++        case 'a': return ImGuiKey_A;
++        case 'b': return ImGuiKey_B;
++        case 'c': return ImGuiKey_C;
++        case 'd': return ImGuiKey_D;
++        case 'e': return ImGuiKey_E;
++        case 'f': return ImGuiKey_F;
++        case 'g': return ImGuiKey_G;
++        case 'h': return ImGuiKey_H;
++        case 'i': return ImGuiKey_I;
++        case 'j': return ImGuiKey_J;
++        case 'k': return ImGuiKey_K;
++        case 'l': return ImGuiKey_L;
++        case 'm': return ImGuiKey_M;
++        case 'n': return ImGuiKey_N;
++        case 'o': return ImGuiKey_O;
++        case 'p': return ImGuiKey_P;
++        case 'q': return ImGuiKey_Q;
++        case 'r': return ImGuiKey_R;
++        case 's': return ImGuiKey_S;
++        case 't': return ImGuiKey_T;
++        case 'u': return ImGuiKey_U;
++        case 'v': return ImGuiKey_V;
++        case 'w': return ImGuiKey_W;
++        case 'x': return ImGuiKey_X;
++        case 'y': return ImGuiKey_Y;
++        case 'z': return ImGuiKey_Z;
++    }
++    return ImGuiKey_None;
++}
++
++
+ namespace OgreBites
+ {
+ 
+@@ -63,37 +185,13 @@ static int keypad2kc(int sym, int mod)
+ 
+ ImGuiInputListener::ImGuiInputListener()
+ {
+-    ImGuiIO& io = ImGui::GetIO();
+-    // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will
+-    // update during the application lifetime.
+-    io.KeyMap[ImGuiKey_Tab] = '\t';
+-    io.KeyMap[ImGuiKey_LeftArrow] = kc2sc(SDLK_LEFT);
+-    io.KeyMap[ImGuiKey_RightArrow] = kc2sc(SDLK_RIGHT);
+-    io.KeyMap[ImGuiKey_UpArrow] = kc2sc(SDLK_UP);
+-    io.KeyMap[ImGuiKey_DownArrow] = kc2sc(SDLK_DOWN);
+-    io.KeyMap[ImGuiKey_PageUp] = kc2sc(SDLK_PAGEUP);
+-    io.KeyMap[ImGuiKey_PageDown] = kc2sc(SDLK_PAGEDOWN);
+-    io.KeyMap[ImGuiKey_Home] = kc2sc(SDLK_HOME);
+-    io.KeyMap[ImGuiKey_End] = kc2sc(SDLK_END);
+-    io.KeyMap[ImGuiKey_Insert] = kc2sc(SDLK_INSERT);
+-    io.KeyMap[ImGuiKey_Delete] = kc2sc(SDLK_DELETE);
+-    io.KeyMap[ImGuiKey_Backspace] = '\b';
+-    io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
+-    io.KeyMap[ImGuiKey_Escape] = '\033';
+-    io.KeyMap[ImGuiKey_Space] = ' ';
+-    io.KeyMap[ImGuiKey_KeyPadEnter] = kc2sc(SDLK_KP_ENTER);
+-    io.KeyMap[ImGuiKey_A] = 'a';
+-    io.KeyMap[ImGuiKey_C] = 'c';
+-    io.KeyMap[ImGuiKey_V] = 'v';
+-    io.KeyMap[ImGuiKey_X] = 'x';
+-    io.KeyMap[ImGuiKey_Y] = 'y';
+-    io.KeyMap[ImGuiKey_Z] = 'z';
++    //ImGuiIO& io = ImGui::GetIO();
+ }
+ 
+ bool ImGuiInputListener::mouseWheelRolled(const MouseWheelEvent& arg)
+ {
+     ImGuiIO& io = ImGui::GetIO();
+-    io.MouseWheel = Ogre::Math::Sign(arg.y);
++    io.AddMouseWheelEvent(0.f, Ogre::Math::Sign(arg.y));
+     return io.WantCaptureMouse;
+ }
+ 
+@@ -102,8 +200,7 @@ bool ImGuiInputListener::mouseMoved(const MouseMotionEvent& arg)
+ 
+     ImGuiIO& io = ImGui::GetIO();
+ 
+-    io.MousePos.x = arg.x;
+-    io.MousePos.y = arg.y;
++    io.AddMousePosEvent(arg.x, arg.y);
+ 
+     return io.WantCaptureMouse;
+ }
+@@ -114,7 +211,7 @@ bool ImGuiInputListener::mousePressed(const MouseButtonEvent& arg)
+     int b = sdl2imgui(arg.button);
+     if (b < 5)
+     {
+-        io.MouseDown[b] = true;
++        io.AddMouseButtonEvent(b, true);
+     }
+     return io.WantCaptureMouse;
+ }
+@@ -124,7 +221,7 @@ bool ImGuiInputListener::mouseReleased(const MouseButtonEvent& arg)
+     int b = sdl2imgui(arg.button);
+     if (b < 5)
+     {
+-        io.MouseDown[b] = false;
++        io.AddMouseButtonEvent(b, false);
+     }
+     return io.WantCaptureMouse;
+ }
+@@ -132,12 +229,13 @@ bool ImGuiInputListener::keyEvent (const KeyboardEvent& arg)
+ {
+     ImGuiIO& io = ImGui::GetIO ();
+     int sym = keypad2kc (arg.keysym.sym, arg.keysym.mod);
+-    int key = kc2sc (sym);
+-    io.KeysDown[key] = (arg.type == OgreBites::KEYDOWN);
+-    io.KeyShift = (arg.keysym.mod & KMOD_SHIFT) != 0;
+-    io.KeyCtrl = (arg.keysym.mod & KMOD_CTRL) != 0;
+-    io.KeyAlt = (arg.keysym.mod & KMOD_ALT) != 0;
+-    io.KeySuper = (arg.keysym.mod & KMOD_GUI) != 0;
++    int key = SDL2_KeycodeToImGuiKey(sym);
++
++    io.AddKeyEvent(key, arg.type == OgreBites::KEYDOWN);
++    io.AddKeyEvent(ImGuiKey_ModShift, (arg.keysym.mod & KMOD_SHIFT) != 0);
++    io.AddKeyEvent(ImGuiKey_ModCtrl, (arg.keysym.mod & KMOD_CTRL) != 0); // Left control?
++    io.AddKeyEvent(ImGuiKey_ModAlt, (arg.keysym.mod & KMOD_ALT) != 0);
++    io.AddKeyEvent(ImGuiKey_ModSuper, (arg.keysym.mod & KMOD_GUI) != 0);
+     return io.WantCaptureKeyboard;
+ }
+ bool ImGuiInputListener::keyPressed(const KeyboardEvent& arg)
+@@ -160,25 +258,25 @@ bool ImGuiInputListener::buttonPressed(const ButtonEvent& evt)
+     switch(evt.button)
+     {
+     case 0:
+-        io.NavInputs[ImGuiNavInput_Activate] = 1;
++        io.AddKeyEvent(ImGuiNavInput_Activate, true);
+         break;
+     case 1:
+-        io.NavInputs[ImGuiNavInput_Cancel] = 1;
++        io.AddKeyEvent(ImGuiNavInput_Cancel, true);
+         break;
+     case 2:
+-        io.NavInputs[ImGuiNavInput_Menu] = 1;
++        io.AddKeyEvent(ImGuiNavInput_Menu, true);
+         break;
+     case 11:
+-        io.NavInputs[ImGuiNavInput_DpadUp] = 1;
++        io.AddKeyEvent(ImGuiNavInput_DpadUp, true);
+         break;
+     case 12:
+-        io.NavInputs[ImGuiNavInput_DpadDown] = 1;
++        io.AddKeyEvent(ImGuiNavInput_DpadDown, true);
+         break;
+     case 13:
+-        io.NavInputs[ImGuiNavInput_DpadLeft] = 1;
++        io.AddKeyEvent(ImGuiNavInput_DpadLeft, true);
+         break;
+     case 14:
+-        io.NavInputs[ImGuiNavInput_DpadRight] = 1;
++        io.AddKeyEvent(ImGuiNavInput_DpadRight, true);
+         break;
+     }
+     return true;
+diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
+index dbdb9f371..e019c309f 100644
+--- a/Components/Overlay/CMakeLists.txt
++++ b/Components/Overlay/CMakeLists.txt
+@@ -13,17 +13,17 @@
+ 
+ # define header and source files for the library
+ file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+-list(APPEND HEADER_FILES 
++list(APPEND HEADER_FILES
+   ${PROJECT_BINARY_DIR}/include/OgreOverlayPrerequisites.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/OgreOverlay.i)
+ file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+ 
+ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+-  set(IMGUI_DIR "${PROJECT_BINARY_DIR}/imgui-1.85" CACHE PATH "")
++  set(IMGUI_DIR "${PROJECT_BINARY_DIR}/imgui-1.87" CACHE PATH "")
+   if(NOT EXISTS ${IMGUI_DIR})
+     message(STATUS "Downloading imgui")
+     file(DOWNLOAD
+-        https://github.com/ocornut/imgui/archive/v1.85.tar.gz
++        https://github.com/ocornut/imgui/archive/v1.87.tar.gz
+         ${PROJECT_BINARY_DIR}/imgui.tar.gz)
+     execute_process(COMMAND ${CMAKE_COMMAND}
+         -E tar xf imgui.tar.gz WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+@@ -46,6 +46,9 @@ endif()
+ add_library(OgreOverlay ${OGRE_COMP_LIB_TYPE} ${HEADER_FILES} ${SOURCE_FILES})
+ set_target_properties(OgreOverlay PROPERTIES VERSION ${OGRE_SOVERSION} SOVERSION ${OGRE_SOVERSION})
+ target_link_libraries(OgreOverlay PUBLIC OgreMain)
++if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
++  target_compile_definitions(OgreOverlay PUBLIC IMGUI_DISABLE_OBSOLETE_KEYIO)
++endif()
+ if(OGRE_WITH_QT)
+   # workaround a linking issue with BitesQt
+   target_link_libraries(OgreOverlay PUBLIC PNG::PNG BZip2::BZip2)
+-- 
+2.25.1
+

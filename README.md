@@ -17,16 +17,23 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
 2. Using *conanfile.txt* in your project with *cmake*
 
-   Add a [*conanfile.txt*](http://docs.conan.io/en/latest/reference/conanfile_txt.html) to your project. This file describes dependencies and your configuration of choice, e.g.:
+   Add a [*conanfile.txt*](http://docs.conan.io/en/latest/reference/conanfile_txt.html) to your project.
+   This file describes dependencies and your configuration of choice.
+   The example below shows an example with imports only for linux:
 
    ```
    [requires]
    ogre3d/[>=13.3.4]@sintef/stable
 
    [options]
+   ogre3d:with_sdl=True
+   ogre3d:install_samples=True
 
    [imports]
    licenses, * -> ./licenses @ folder=True
+   bin, * -> ./bin @ root_package=ogre3d
+   lib, *.so* -> ./lib @ root_package=ogre3d
+   share, * -> ./share @ root_package=ogre3d
 
    [generators]
    cmake_paths
@@ -110,10 +117,10 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
   The recipe is only tested on Windows and Linux. It will probably not work for Emscripten
   and Android and other platforms.
-  - The runpaths are not stripped and contain absolute paths. RPATH should be stripped
   - Some disabled features may detect system-installed requirements and enabled even if they are specified to be disabled in the recipe
     - This may cause downstream issues if you create a library which requires ogre3d.
   - OpenGL ES dependencies are not handled by the recipe. The need to by system installed
+  - Qt6 is not supported yet
 
 ## Non-exposed Ogre configuration
 
@@ -151,3 +158,5 @@ The package is usually consumed using the `conan install` command or a *conanfil
     - The flag `-1` should coincide with the number of commits to create patch files of
     - Each patch name should be prepended with the version for which it is intended
     - Add each patch to the list of patches in `conandata.yml`
+    - To add more patches to a release, you should first apply the existing patches and
+      then add your fixes as additional commits.

@@ -1,0 +1,88 @@
+From 9ee27ed733445e142ef32b8ad14143742e09fb77 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@gmail.com>
+Date: Wed, 11 May 2022 16:03:42 +0200
+Subject: [PATCH 3/8] Fix Vulkan rendersystem and tests when Ogre::Real is
+ double
+
+---
+ .../Vulkan/include/OgreVulkanRenderSystem.h   |  2 +-
+ .../Vulkan/src/OgreVulkanRenderSystem.cpp     |  2 +-
+ Tests/OgreMain/src/General.cpp                | 22 ++++++++++++++++---
+ Tests/OgreMain/src/QuaternionTests.cpp        |  2 +-
+ 4 files changed, 22 insertions(+), 6 deletions(-)
+
+diff --git a/RenderSystems/Vulkan/include/OgreVulkanRenderSystem.h b/RenderSystems/Vulkan/include/OgreVulkanRenderSystem.h
+index 026e7c3cf..a59aeaf2a 100644
+--- a/RenderSystems/Vulkan/include/OgreVulkanRenderSystem.h
++++ b/RenderSystems/Vulkan/include/OgreVulkanRenderSystem.h
+@@ -203,7 +203,7 @@ namespace Ogre
+         void _setViewport(Viewport *vp);
+         void _setRenderTarget(RenderTarget *target);
+         void clearFrameBuffer(unsigned int buffers, const ColourValue& colour = ColourValue::Black,
+-                              Real depth = 1.0f, unsigned short stencil = 0);
++                              float depth = 1.0f, unsigned short stencil = 0);
+         void setScissorTest(bool enabled, const Rect& rect = Rect()) override;
+         void setStencilState(const StencilState& state) override;
+         void _setPolygonMode(PolygonMode level) override;
+diff --git a/RenderSystems/Vulkan/src/OgreVulkanRenderSystem.cpp b/RenderSystems/Vulkan/src/OgreVulkanRenderSystem.cpp
+index 0fbc98352..19c27ef3c 100644
+--- a/RenderSystems/Vulkan/src/OgreVulkanRenderSystem.cpp
++++ b/RenderSystems/Vulkan/src/OgreVulkanRenderSystem.cpp
+@@ -1395,7 +1395,7 @@ namespace Ogre
+             mCurrentRenderPassDescriptor = rtt->getRenderPassDescriptor();
+         }
+     }
+-    void VulkanRenderSystem::clearFrameBuffer(unsigned int buffers, const ColourValue& colour, Real depth,
++    void VulkanRenderSystem::clearFrameBuffer(unsigned int buffers, const ColourValue& colour, float depth,
+                                               unsigned short stencil)
+     {
+         mCurrentRenderPassDescriptor->setClearColour(colour);
+diff --git a/Tests/OgreMain/src/General.cpp b/Tests/OgreMain/src/General.cpp
+index 129225ca7..8d43b3905 100644
+--- a/Tests/OgreMain/src/General.cpp
++++ b/Tests/OgreMain/src/General.cpp
+@@ -65,9 +65,25 @@ TEST_F(CameraTests,customProjectionMatrix)
+     RealRect extents = cam.getFrustumExtents();
+     cam.setCustomProjectionMatrix(true, cam.getProjectionMatrix());
+     for(int j = 0; j < 8; j++)
+-        EXPECT_EQ(corners[j], cam.getWorldSpaceCorners()[j]);
+-
+-    EXPECT_EQ(extents, cam.getFrustumExtents());
++      for(int k = 0; k < 3; k++) {
++          if(typeid(corners[j]) == typeid(float))
++              EXPECT_FLOAT_EQ(corners[j][k], cam.getWorldSpaceCorners()[j][k]);
++          else
++              EXPECT_DOUBLE_EQ(corners[j][k], cam.getWorldSpaceCorners()[j][k]);
++      }
++
++
++    if(typeid(Ogre::Real) == typeid(float)) {
++        EXPECT_FLOAT_EQ(extents.bottom, cam.getFrustumExtents().bottom);
++        EXPECT_FLOAT_EQ(extents.top, cam.getFrustumExtents().top);
++        EXPECT_FLOAT_EQ(extents.left, cam.getFrustumExtents().left);
++        EXPECT_FLOAT_EQ(extents.right, cam.getFrustumExtents().right);
++    } else {
++        EXPECT_DOUBLE_EQ(extents.bottom, cam.getFrustumExtents().bottom);
++        EXPECT_DOUBLE_EQ(extents.top, cam.getFrustumExtents().top);
++        EXPECT_DOUBLE_EQ(extents.left, cam.getFrustumExtents().left);
++        EXPECT_DOUBLE_EQ(extents.right, cam.getFrustumExtents().right);
++    }
+ }
+ 
+ TEST(Root,shutdown)
+diff --git a/Tests/OgreMain/src/QuaternionTests.cpp b/Tests/OgreMain/src/QuaternionTests.cpp
+index ec07a2f23..81af968ac 100644
+--- a/Tests/OgreMain/src/QuaternionTests.cpp
++++ b/Tests/OgreMain/src/QuaternionTests.cpp
+@@ -33,7 +33,7 @@ using namespace Ogre;
+ 
+ TEST(QuaternionTests,Norm)
+ {
+-    EXPECT_EQ(Quaternion(0, 2, 2, 2).Norm(), Vector3(2, 2, 2).length());
++    EXPECT_NEAR(Quaternion(0, 2, 2, 2).Norm(), Vector3(2, 2, 2).length(), 1e-6);
+ }
+ 
+ TEST(QuaternionTests,FromVectors)
+-- 
+2.25.1
+

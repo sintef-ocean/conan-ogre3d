@@ -320,6 +320,8 @@ class Ogre3dConan(ConanFile):
         if self.options.component_overlay:
             self.cpp_info.includedirs.append(f"{include}/Overlay")
             libs.append("OgreOverlay")
+        if self.options.component_overlay_imgui:
+            self.cpp_info.defines.append("IMGUI_DISABLE_OBSOLETE_KEYIO")
         if self.options.component_paging:
             self.cpp_info.includedirs.append(f"{include}/Paging")
             libs.append("OgrePaging")

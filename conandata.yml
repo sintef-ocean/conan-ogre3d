@@ -27,4 +27,18 @@ dependencies:
 patches:
   13.3.4:
     - base_path: source_subfolder
-      patch_file: patches/13.3.4-0001-Do-conanization-fixes.patch
+      patch_file: patches/13.3.4-0001-Do-essential-conanization-fixes.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0002-Fix-zip-linking-issue-for-conanized.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0003-Fix-Vulkan-rendersystem-and-tests-when-Ogre-Real-is-.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0004-Avoid-truncation-assignment-warnings-of-LOG2-and-PI.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0005-Remove-absolute-paths-from-ogre-config-paths-header.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0006-Set-rpath-with-origin-variants.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0007-Work-on-ImGui-context-exposure.patch
+    - base_path: source_subfolder
+      patch_file: patches/13.3.4-0008-Update-ImGui-to-1.87-and-use-new-event-API-calls.patch
