@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [13.3.4]
+        version: [13.4.0]
         compiler_version: [8, 9, 10, 11]
         build_type: [Debug, Release]
         os: [ubuntu-20.04]

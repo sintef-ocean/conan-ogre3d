@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [13.3.4]
+        version: [13.4.0]
         compiler_toolset: [v141, v142, v143]
         build_type: [Debug, Release]
         compiler_version: [17]

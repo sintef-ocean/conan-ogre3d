@@ -4,7 +4,7 @@ from conans import ConanFile, CMake, tools
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
     license = "MIT"
-    # version = "13.3.4"  # uncomment to "enable package development flow"
+    # version = "13.4.0"  # uncomment to "enable package development flow"
     author = "SINTEF Ocean"
     url = "https://github.com/sintef-ocean/conan-ogre3d"
     description = "3D graphics rendering engine"
@@ -42,6 +42,7 @@ class Ogre3dConan(ConanFile):
         "plugin_pcz": [True, False],
         "plugin_stbi": [True, False],
         "component_bites": [True, False],
+        "component_bullet": [True, False],
         "component_meshlodgenerator": [True, False],
         "component_overlay": [True, False],
         "component_overlay_imgui": [True, False],
@@ -93,6 +94,7 @@ class Ogre3dConan(ConanFile):
         "plugin_pcz": True,
         "plugin_stbi": True,
         "component_bites": True,
+        "component_bullet": True,
         "component_meshlodgenerator": True,
         "component_overlay": True,
         "component_overlay_imgui": True,
@@ -155,12 +157,20 @@ class Ogre3dConan(ConanFile):
         if self.options.plugin_glslang:
             self.requires(f"glslang/{deps['glslang']}", private=False)
 
+        if self.options.get_safe("component_bullet", False):
+            self.requires(f"bullet3/{deps['bullet3']}", private=False)
+
         if self.settings.os == "Linux":
             self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
 
         # with_sdl a conflict arises for zlib..
         if self.options.with_sdl or self.options.plugin_assimp:
             self.requires(f"zlib/{deps['zlib']}", override=True, private=True)
+
+        if self.options.with_qt:
+            self.requires(f"openssl/{deps['openssl']}", override=True)
+            if self.settings.os == "Linux":
+                self.requires(f"xkbcommon/{deps['xkbcommon']}", override=True)
 
     def build_requirements(self):
         deps = self.conan_data["dependencies"][self.version]
@@ -186,6 +196,8 @@ class Ogre3dConan(ConanFile):
         if self.settings.os != "Windows":
             del self.options.rendersystem_direct3d9
             del self.options.rendersystem_direct3d11
+        if tools.Version(self.version) < "13.4.0":
+            del self.options.component_bullet
 
     def configure(self):
         self.options["freetype"].shared = False
@@ -193,6 +205,7 @@ class Ogre3dConan(ConanFile):
         self.options["pugixml"].shared = False
         self.options["openexr"].shared = False
         self.options["glslang"].shared = False
+        self.options["bullet3"].shared = False
         if self.settings.os != "Windows":
             self.options["llvm-openmp"].shared = False
             self.options["llvm-openmp"].fPIC = True
@@ -253,6 +266,8 @@ class Ogre3dConan(ConanFile):
             defs[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem
             defs[f"{comp}_TERRAIN"] = self.options.component_terrain
             defs[f"{comp}_VOLUME"] = self.options.component_volume
+            if tools.Version(self.version) >= "13.4.0":
+                defs[f"{comp}_BULLET"] = self.options.component_bullet
 
             defs["OGRE_BUILD_RTSHADERSYSTEM_SHADERS"] = \
                 self.options.component_rtshadersystem
@@ -314,6 +329,9 @@ class Ogre3dConan(ConanFile):
             if self.options.with_qt:
                 libs.append("OgreBitesQt")
 
+        if self.options.get_safe("component_bullet", False):
+            self.cpp_info.includedirs.append(f"{include}/Bullet")
+            libs.append("OgreBullet")
         if self.options.component_meshlodgenerator:
             self.cpp_info.includedirs.append(f"{include}/MeshLodGenerator")
             libs.append("OgreMeshLodGenerator")

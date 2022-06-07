@@ -1,0 +1,71 @@
+From 26d2af70abf4c37430bb24d075689320af5f1ac6 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Tue, 7 Jun 2022 17:18:54 +0200
+Subject: [PATCH 4/5] Remove absolute paths from ogre config paths header
+
+---
+ CMake/InstallResources.cmake                 | 7 ++++---
+ CMake/Templates/OgreConfigPaths.h.in         | 6 +++---
+ Components/Bites/src/OgreGLXConfigDialog.cpp | 2 +-
+ 3 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/CMake/InstallResources.cmake b/CMake/InstallResources.cmake
+index cfe7db3ce..76ece6a4b 100644
+--- a/CMake/InstallResources.cmake
++++ b/CMake/InstallResources.cmake
+@@ -33,10 +33,11 @@ endif()
+ if (NOT OGRE_PLUGINS_PATH)
+   if (WIN32)
+     set(OGRE_PLUGINS_PATH "${OGRE_BIN_DIRECTORY}")
+-    set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_BIN_DIRECTORY}")
++    set(OGRE_PLUGIN_DIR_REL "../${OGRE_BIN_DIRECTORY}")
+   else ()
+     set(OGRE_PLUGINS_PATH "${OGRE_LIB_DIRECTORY}/OGRE")
+     set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}/OGRE")
++    set(OGRE_PLUGIN_DIR_REL "../../${OGRE_LIB_DIRECTORY}/OGRE")
+   endif()
+ else ()
+   set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_PLUGINS_PATH}")
+@@ -63,8 +64,8 @@ elseif (APPLE)
+   set(OGRE_SAMPLES_DIR_REL "Contents/Plugins/")
+   set(OGRE_CFG_INSTALL_PATH "bin")
+ elseif (UNIX)
+-  set(OGRE_TEST_MEDIA_DIR_REL "${CMAKE_INSTALL_PREFIX}/Tests/Media")
+-  set(OGRE_SAMPLES_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}/OGRE/Samples")
++  set(OGRE_TEST_MEDIA_DIR_REL "../../Tests/Media")
++  set(OGRE_SAMPLES_DIR_REL "../${OGRE_LIB_DIRECTORY}/OGRE/Samples")
+ endif ()
+ 
+ # generate OgreConfigPaths.h
+diff --git a/CMake/Templates/OgreConfigPaths.h.in b/CMake/Templates/OgreConfigPaths.h.in
+index d51aab547..f8e058df2 100644
+--- a/CMake/Templates/OgreConfigPaths.h.in
++++ b/CMake/Templates/OgreConfigPaths.h.in
+@@ -1,8 +1,8 @@
+ #ifndef OGRECONFIGPATHS_H_
+ #define OGRECONFIGPATHS_H_
+ 
+-#define OGRE_CONFIG_DIR "@CMAKE_INSTALL_PREFIX@/@OGRE_CFG_INSTALL_PATH@"
+-#define OGRE_MEDIA_DIR "@CMAKE_INSTALL_PREFIX@/@OGRE_MEDIA_PATH@"
+-#define OGRE_PLUGIN_DIR "@OGRE_PLUGIN_DIR_REL@" 
++#define OGRE_CONFIG_DIR "@OGRE_CFG_INSTALL_PATH@"
++#define OGRE_MEDIA_DIR "@OGRE_MEDIA_DIR_REL@"
++#define OGRE_PLUGIN_DIR "@OGRE_PLUGIN_DIR_REL@"
+ 
+ #endif /* OGRECONFIGPATHS_H_ */
+diff --git a/Components/Bites/src/OgreGLXConfigDialog.cpp b/Components/Bites/src/OgreGLXConfigDialog.cpp
+index 9ce1157e3..7fea892cc 100644
+--- a/Components/Bites/src/OgreGLXConfigDialog.cpp
++++ b/Components/Bites/src/OgreGLXConfigDialog.cpp
+@@ -337,7 +337,7 @@ Pixmap GLXConfigurator::CreateBackdrop(Window rootWindow, int depth) {
+         Image img;
+ 
+         // Load backdrop image using OGRE
+-        String path = FileSystemLayer::resolveBundlePath(OGRE_MEDIA_DIR "/../GLX_backdrop.png");
++        String path = FileSystemLayer::resolveBundlePath("../" OGRE_MEDIA_DIR "/GLX_backdrop.png");
+         DataStreamPtr imgStreamPtr = Root::openFileStream(path);
+         img.load(imgStreamPtr, "png");
+ 
+-- 
+2.30.2
+
