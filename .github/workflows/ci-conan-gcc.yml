@@ -23,6 +23,7 @@ jobs:
         compiler_version: [8, 9, 10, 11]
         build_type: [Debug, Release]
         os: [ubuntu-20.04]
+        configs: ["True", "False"]
     container:
       image: conanio/gcc${{ matrix.compiler_version }}
       options: -u 0
@@ -42,6 +43,9 @@ jobs:
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.libcxx=libstdc++11 \
             -b missing -b outdated --update \
+            -o ogre3d:rendersystem_vulkan=${{ matrix.configs }} \
+            -o ogre3d:plugin_glslang=${{ matrix.configs }} \
+            -o ogre3d:component_bullet=${{ matrix.configs }} \
             . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
