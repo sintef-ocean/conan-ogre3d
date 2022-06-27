@@ -315,7 +315,7 @@ class Ogre3dConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.name = 'Ogre3D'
-        self.cpp_info.libdirs = ['lib']
+        self.cpp_info.libdirs = ['lib', 'lib/OGRE']
         libs = ["OgreMain"]
 
         # TODO: support components and closer mirror Ogre's cmake configure script
