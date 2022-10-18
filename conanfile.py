@@ -409,7 +409,7 @@ class Ogre3dConan(ConanFile):
         if self.options.plugin_glslang:
             self.cpp_info.includedirs.append(f"{include_P}/GLSLang")
             if self.settings.os == "Windows": 
-                libs.append("Plugin_GLSLang")
+                libs.append("Plugin_GLSLangProgramManager")
         if self.options.plugin_octree:
             self.cpp_info.includedirs.append(f"{include_P}/OctreeSceneManager")
             self.cpp_info.includedirs.append(f"{include_P}/OctreeZone")
