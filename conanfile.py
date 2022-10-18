@@ -249,8 +249,8 @@ class Ogre3dConan(ConanFile):
             defs[f"{plugins}_FREEIMAGE"] = self.options.plugin_freeimage
             defs[f"{plugins}_GLSLANG"] = self.options.plugin_glslang
             defs[f"{plugins}_OCTREE"] = self.options.plugin_octree
-            defs[f"{plugins}_PCZ"] = self.options.plugin_particlefx
-            defs[f"{plugins}_PFX"] = self.options.plugin_pcz
+            defs[f"{plugins}_PCZ"] = self.options.plugin_pcz
+            defs[f"{plugins}_PFX"] = self.options.plugin_particlefx
             defs[f"{plugins}_STBI"] = self.options.plugin_stbi
 
             comp = "OGRE_BUILD_COMPONENT"
@@ -315,7 +315,10 @@ class Ogre3dConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.name = 'Ogre3D'
-        self.cpp_info.libdirs = ['lib']
+        libdirs = ['lib']
+        if self.settings.os == "Windows": # For Windows, static plugin, codec, and render system libraries are in bin-folder
+            libdirs.append('bin')
+        self.cpp_info.libdirs = libdirs
         libs = ["OgreMain"]
 
         # TODO: support components and closer mirror Ogre's cmake configure script
@@ -360,40 +363,71 @@ class Ogre3dConan(ConanFile):
         if self.settings.os == "Windows":
             if self.options.rendersystem_direct3d9:
                 self.cpp_info.includedirs.append(f"{include_RS}/Direct3D9")
+                libs.append("RenderSystem_Direct3D9")
             if self.options.rendersystem_direct3d11:
                 self.cpp_info.includedirs.append(f"{include_RS}/Direct3D11")
+                libs.append("RenderSystem_Direct3D11")
         if self.options.rendersystem_opengl:
             self.cpp_info.includedirs.append(f"{include_RS}/GL")
             self.cpp_info.includedirs.append(f"{include_RS}/GL/GL")
+            if self.settings.os == "Windows": 
+                libs.append("RenderSystem_GL")
         if self.options.rendersystem_opengl3:
             self.cpp_info.includedirs.append(f"{include_RS}/GL3Plus")
+            if self.settings.os == "Windows": 
+                libs.append("RenderSystem_GL3Plus")
         if self.options.rendersystem_opengles:
             self.cpp_info.includedirs.append(f"{include_RS}/GLES2")
+            if self.settings.os == "Windows": 
+                libs.append("RenderSystem_GLES2")
         if self.options.rendersystem_vulkan:
             self.cpp_info.includedirs.append(f"{include_RS}/Vulkan")
+            if self.settings.os == "Windows": 
+                libs.append("RenderSystem_Vulkan")
 
         include_P = "include/OGRE/Plugins"
         if self.options.plugin_assimp:
             self.cpp_info.includedirs.append(f"{include_P}/Assimp")
+            if self.settings.os == "Windows": 
+                libs.append("Codec_Assimp")
         if self.options.plugin_bsp:
             self.cpp_info.includedirs.append(f"{include_P}/BSPSceneManager")
+            if self.settings.os == "Windows": 
+                libs.append("Plugin_BSPSceneManager")
         if self.options.plugin_dotscene:
             self.cpp_info.includedirs.append(f"{include_P}/DotScene")
+            if self.settings.os == "Windows": 
+                libs.append("Codec_EXR")
         if self.options.plugin_exrcodec:
             self.cpp_info.includedirs.append(f"{include_P}/EXRCodec")
+            if self.settings.os == "Windows": 
+                libs.append("Codec_EXR")
         if self.options.plugin_freeimage:
             self.cpp_info.includedirs.append(f"{include_P}/FreeImageCodec")
+            if self.settings.os == "Windows": 
+                libs.append("Codec_FreeImage")
         if self.options.plugin_glslang:
             self.cpp_info.includedirs.append(f"{include_P}/GLSLang")
+            if self.settings.os == "Windows": 
+                libs.append("Plugin_GLSLang")
         if self.options.plugin_octree:
             self.cpp_info.includedirs.append(f"{include_P}/OctreeSceneManager")
             self.cpp_info.includedirs.append(f"{include_P}/OctreeZone")
+            if self.settings.os == "Windows": 
+                libs.append("Plugin_OctreeSceneManager")
+                libs.append("Plugin_OctreeZone")
         if self.options.plugin_pcz:
             self.cpp_info.includedirs.append(f"{include_P}/PCZSceneManager")
+            if self.settings.os == "Windows": 
+                libs.append("Plugin_PCZSceneManager")
         if self.options.plugin_particlefx:
             self.cpp_info.includedirs.append(f"{include_P}/ParticleFX")
+            if self.settings.os == "Windows": 
+                libs.append("Plugin_ParticleFX")
         if self.options.plugin_stbi:
             self.cpp_info.includedirs.append(f"{include_P}/STBICodec")
+            if self.settings.os == "Windows": 
+                libs.append("Codec_STBI")
 
         if self.settings.compiler == "Visual Studio" \
            and self.settings.build_type == "Debug":
