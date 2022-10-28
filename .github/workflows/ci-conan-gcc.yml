@@ -24,6 +24,7 @@ jobs:
         build_type: [Debug, Release]
         os: [ubuntu-20.04]
         configs: ["True", "False"]
+        enable_double:  ["True", "False"]
     container:
       image: conanio/gcc${{ matrix.compiler_version }}
       options: -u 0
@@ -45,7 +46,8 @@ jobs:
             -b missing -b outdated --update \
             -o ogre3d:rendersystem_vulkan=${{ matrix.configs }} \
             -o ogre3d:plugin_glslang=${{ matrix.configs }} \
-            -o ogre3d:component_bullet=${{ matrix.configs }} \
+            -o ogre3d:component_bullet=${{ matrix.configs }} \            
+            -o ogre3d:enable_double=${{ matrix.enable_double }} \
             . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
