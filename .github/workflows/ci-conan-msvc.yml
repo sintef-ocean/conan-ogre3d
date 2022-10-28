@@ -27,6 +27,7 @@ jobs:
         compiler_version: [17]
         os: [windows-2022]
         configs: ["True", "False"]
+        enable_double: ["True","False"]
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
@@ -44,7 +45,8 @@ jobs:
             -s compiler.version=${{ matrix.compiler_version }} `
             -o ogre3d:rendersystem_vulkan=${{ matrix.configs }} `
             -o ogre3d:plugin_glslang=${{ matrix.configs }} `
-            -o ogre3d:component_bullet=${{ matrix.configs }} `
+            -o ogre3d:component_bullet=${{ matrix.configs }} `            
+            -o ogre3d:enable_double=${{ matrix.enable_double }} `
             -b missing -b outdated . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
