@@ -33,7 +33,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y libegl1-mesa-dev
+          sudo apt-get install -y libgl1-mesa-dev
           sudo pip3 install --upgrade setuptools pip
           sudo pip3 install --upgrade conan
       - name: Configure Conan
@@ -49,6 +49,7 @@ jobs:
             -o ogre3d:plugin_glslang=${{ matrix.configs }} \
             -o ogre3d:component_bullet=${{ matrix.configs }} \
             -o ogre3d:enable_double=${{ matrix.enable_double }} \
+            -c tools.system.package_manager:mode=install \
             . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
