@@ -47,7 +47,7 @@ jobs:
             -b missing -b outdated --update \
             -o ogre3d:rendersystem_vulkan=${{ matrix.configs }} \
             -o ogre3d:plugin_glslang=${{ matrix.configs }} \
-            -o ogre3d:component_bullet=${{ matrix.configs }} \            
+            -o ogre3d:component_bullet=${{ matrix.configs }} \
             -o ogre3d:enable_double=${{ matrix.enable_double }} \
             . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
