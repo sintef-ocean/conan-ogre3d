@@ -49,6 +49,7 @@ jobs:
             -o ogre3d:plugin_glslang=${{ matrix.configs }} \
             -o ogre3d:component_bullet=${{ matrix.configs }} \
             -o ogre3d:enable_double=${{ matrix.enable_double }} \
+            -c tools.system.package_manager:mode=install \
             -b missing -b outdated --update . ${{ matrix.version }}@sintef/stable
       - name: Conan upload
         run: |
