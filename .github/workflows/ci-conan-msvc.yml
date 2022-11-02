@@ -10,6 +10,7 @@ env:
   CONAN_NON_INTERACTIVE: True
   CONAN_USE_ALWAYS_SHORT_PATHS: True
   CONAN_REVISIONS_ENABLED: 1
+  SINTEF_CHANNEL: ${{ (github.head_ref || github.ref_name) == 'master' && 'stable' || 'testing' }}
 
 jobs:
   conan-with-msvc:
@@ -21,15 +22,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [13.4.0]
+        version: [13.4.0, 13.5.0]
         compiler_toolset: [v141, v142, v143]
         build_type: [Debug, Release]
         compiler_version: [17]
         os: [windows-2022]
-        configs: ["True", "False"]
-        enable_double: ["True","False"]
+        configs: ['default', 'fhsim']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         run: |
           pip3 install --upgrade setuptools pip
@@ -43,11 +43,11 @@ jobs:
           conan create -s build_type=${{ matrix.build_type }} `
             -s compiler.toolset=${{ matrix.compiler_toolset }} `
             -s compiler.version=${{ matrix.compiler_version }} `
-            -o ogre3d:rendersystem_vulkan=${{ matrix.configs }} `
-            -o ogre3d:plugin_glslang=${{ matrix.configs }} `
-            -o ogre3d:component_bullet=${{ matrix.configs }} `
-            -o ogre3d:enable_double=${{ matrix.enable_double }} `
-            -b missing -b outdated . ${{ matrix.version }}@sintef/stable
+            -o ogre3d:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} `
+            -o ogre3d:rendersystem_vulkan=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} `
+            -o ogre3d:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} `
+            -o ogre3d:enable_double=${{ ( matrix.configs == 'fhsim' && matrix.version != '13.4.0' ) && 'True' || 'False' }} `
+            -b missing -b outdated . ${{ matrix.version }}@sintef/${env:SINTEF_CHANNEL}
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${env:SINTEF_REFERENCE} --retry 15 --retry-wait 25 --force

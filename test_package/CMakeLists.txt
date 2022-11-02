@@ -7,4 +7,4 @@ include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 find_package(Ogre3D MODULE REQUIRED)
 
 add_executable(${PROJECT_NAME} test_package.cpp)
-target_link_libraries(${PROJECT_NAME} Ogre3D::Ogre3D)
+target_link_libraries(${PROJECT_NAME} Ogre3D::Components)
