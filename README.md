@@ -23,7 +23,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
    ```
    [requires]
-   ogre3d/[>=13.3.4]@sintef/stable
+   ogre3d/[~13.4.0]@sintef/stable
 
    [options]
    ogre3d:with_sdl=True
@@ -59,59 +59,72 @@ The package is usually consumed using the `conan install` command or a *conanfil
    You can now continue with the usual dance with cmake commands for configuration and
    compilation. For details on how to use conan, please consult [Conan.io docs](http://docs.conan.io/en/latest/)
 
+## Package components
+
+We have added support for components using `cmake` and `cmake_find_package` generators. The following targets are available [EXPERIMENTAL]:
+
+ - `Ogre3D::Ogre3D` - Depends on all components below
+ - `Ogre3D::Components` - All built component libraries, including core libraries
+ - `Ogre3D::Plugins` - Include directories of built plugins, and also import library files on Windows, depends on `Ogre3D::Components`
+ - `Ogre3D::RenderSystems` - Include directories of built rendersystems, and also import library files on Windows, depends on `Ogre::Components`
+
+
 ## Package options
 
-| Option                          | Allowed values     | Default |
-| ---                             | ---                | ---    |
-| with_freetype                   | [True, False]      | False  |
-| with_sdl                        | [True, False]      | False  |
-| with_qt                         | [True, False]      | False  |
-| install_samples                 | [True, False]      | False  |
-| install_tools                   | [True, False]      | True   |
-| bindings_csharp                 | [True, False]      | False  |
-| bindings_java                   | [True, False]      | False  |
-| bindings_python                 | [True, False]      | False  |
-| rendersystem_direct3d11         | [True, False]      | True   |
-| rendersystem_direct3d9          | [True, False]      | False  |
-| rendersystem_metal              | [True, False]      | False  |
-| rendersystem_opengl             | [True, False]      | False  |
-| rendersystem_opengl3            | [True, False]      | True   |
-| rendersystem_opengles           | [True, False]      | False  |
-| rendersystem_tiny               | [True, False]      | False  |
-| rendersystem_vulkan             | [True, False]      | True   |
-| plugin_assimp                   | [True, False]      | True   |
-| plugin_bsp                      | [True, False]      | True   |
-| plugin_dotscene                 | [True, False]      | True   |
-| plugin_exrcodec                 | [True, False]      | True   |
-| plugin_freeimage                | [True, False]      | False  |
-| plugin_glslang                  | [True, False]      | True   |
-| plugin_octree                   | [True, False]      | True   |
-| plugin_particlefx               | [True, False]      | True   |
-| plugin_pcz                      | [True, False]      | True   |
-| plugin_stbi                     | [True, False]      | True   |
-| component_bites                 | [True, False]      | True   |
-| component_meshlodgenerator      | [True, False]      | True   |
-| component_overlay               | [True, False]      | True   |
-| component_overlay_imgui         | [True, False]      | True   |
-| component_paging                | [True, False]      | True   |
-| component_property              | [True, False]      | True   |
-| component_rtshadersystem        | [True, False]      | True   |
-| component_terrain               | [True, False]      | True   |
-| component_volume                | [True, False]      | True   |
-| enable_astc                     | [True, False]      | True   |
-| enable_dds                      | [True, False]      | True   |
-| enable_double                   | [True, False]      | False  |
-| enable_etc                      | [True, False]      | True   |
-| enable_gl_state_cache_support   | [True, False]      | False  |
-| enable_gles2_glsl_optimiser     | [True, False]      | False  |
-| enable_meshlod                  | [True, False]      | True   |
-| enable_node_inherit_transform   | [True, False]      | False  |
-| enable_pvrtc                    | [True, False]      | False  |
-| enable_quad_buffer_stereo       | [True, False]      | False  |
-| enable_viewport_orientationmode | [True, False]      | False  |
-| enable_zip                      | [True, False]      | True   |
-| build_tests                     | [True, False]      | False  |
-
+| Option                          | Allowed values | Default |
+|---------------------------------|----------------|---------|
+| with_freetype                   | [True, False]  | False   |
+| with_sdl                        | [True, False]  | True    |
+| with_qt5                        | [True, False]  | False*  |
+| with_qt6                        | [True, False]  | False*  |
+| install_samples                 | [True, False]  | False   |
+| install_tools                   | [True, False]  | True    |
+| bindings_csharp                 | [True, False]  | False   |
+| bindings_java                   | [True, False]  | False   |
+| bindings_python                 | [True, False]  | False   |
+| rendersystem_direct3d11         | [True, False]  | True    |
+| rendersystem_direct3d9          | [True, False]  | False   |
+| rendersystem_metal              | [True, False]  | False   |
+| rendersystem_opengl             | [True, False]  | False   |
+| rendersystem_opengl3            | [True, False]  | True    |
+| rendersystem_opengles           | [True, False]  | False   |
+| rendersystem_tiny               | [True, False]  | False   |
+| rendersystem_vulkan             | [True, False]  | True    |
+| plugin_assimp                   | [True, False]  | True    |
+| plugin_bsp                      | [True, False]  | True    |
+| plugin_dotscene                 | [True, False]  | True    |
+| plugin_exrcodec                 | [True, False]  | True    |
+| plugin_freeimage                | [True, False]  | False   |
+| plugin_glslang                  | [True, False]  | True    |
+| plugin_octree                   | [True, False]  | True    |
+| plugin_particlefx               | [True, False]  | True    |
+| plugin_pcz                      | [True, False]  | True    |
+| plugin_stbi                     | [True, False]  | True    |
+| component_bites                 | [True, False]  | True    |
+| component_bullet                | [True, False]  | True    |
+| component_meshlodgenerator      | [True, False]  | True    |
+| component_overlay               | [True, False]  | True    |
+| component_overlay_imgui         | [True, False]  | True    |
+| component_paging                | [True, False]  | True    |
+| component_property              | [True, False]  | True    |
+| component_rtshadersystem        | [True, False]  | True    |
+| component_terrain               | [True, False]  | True    |
+| component_volume                | [True, False]  | True    |
+| enable_astc                     | [True, False]  | True    |
+| enable_dds                      | [True, False]  | True    |
+| enable_double                   | [True, False]  | False   |
+| enable_etc                      | [True, False]  | True    |
+| enable_gl_state_cache_support   | [True, False]  | False   |
+| enable_gles2_glsl_optimiser     | [True, False]  | False   |
+| enable_meshlod                  | [True, False]  | True    |
+| enable_node_inherit_transform   | [True, False]  | False   |
+| enable_pvrtc                    | [True, False]  | False   |
+| enable_quad_buffer_stereo       | [True, False]  | False   |
+| enable_viewport_orientationmode | [True, False]  | False   |
+| enable_zip                      | [True, False]  | True    |
+| build_tests                     | [True, False]  | False   |
+|---------------------------------|----------------|---------|
+| * Select with_qt5 OR with_qt6   |                |         |
 
 ## Known recipe issues
 
@@ -119,8 +132,7 @@ The package is usually consumed using the `conan install` command or a *conanfil
   and Android and other platforms.
   - Some disabled features may detect system-installed requirements and enabled even if they are specified to be disabled in the recipe
     - This may cause downstream issues if you create a library which requires ogre3d.
-  - OpenGL ES dependencies are not handled by the recipe. The need to by system installed
-  - Qt6 is not supported yet
+  - OpenGL ES dependencies are not handled by the recipe. The need to be system installed
 
 ## Non-exposed Ogre configuration
 

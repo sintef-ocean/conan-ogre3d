@@ -11,6 +11,7 @@ env:
   CONAN_USE_ALWAYS_SHORT_PATHS: True
   CONAN_REVISIONS_ENABLED: 1
   CONAN_SYSREQUIRES_MODE: enabled
+  SINTEF_CHANNEL: ${{ (github.head_ref || github.ref_name) == 'master' && 'stable' || 'testing' }}
 
 jobs:
   conan-with-gcc:
@@ -19,17 +20,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [13.4.0]
+        version: [13.4.0, 13.5.0]
         compiler_version: [8, 9, 10, 11]
         build_type: [Debug, Release]
         os: [ubuntu-20.04]
-        configs: ["True", "False"]
-        enable_double:  ["True", "False"]
+        configs: ['default', 'fhsim']
     container:
       image: conanio/gcc${{ matrix.compiler_version }}
       options: -u 0
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         run: |
           sudo apt-get update
@@ -45,12 +45,12 @@ jobs:
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.libcxx=libstdc++11 \
             -b missing -b outdated --update \
-            -o ogre3d:rendersystem_vulkan=${{ matrix.configs }} \
-            -o ogre3d:plugin_glslang=${{ matrix.configs }} \
-            -o ogre3d:component_bullet=${{ matrix.configs }} \
-            -o ogre3d:enable_double=${{ matrix.enable_double }} \
+            -o ogre3d:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
+            -o ogre3d:rendersystem_vulkan=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
+            -o ogre3d:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
+            -o ogre3d:enable_double=${{ ( matrix.configs == 'fhsim' && matrix.version != '13.4.0' ) && 'True' || 'False' }} \
             -c tools.system.package_manager:mode=install \
-            . ${{ matrix.version }}@sintef/stable
+            . ${{ matrix.version }}@sintef/${SINTEF_CHANNEL}
       - name: Conan upload
         run: |
           conan upload --all -c -r sintef ${SINTEF_REFERENCE} --retry 15 --retry-wait 25 --force

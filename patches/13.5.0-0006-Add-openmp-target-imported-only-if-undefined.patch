@@ -1,0 +1,27 @@
+From f43b7c3dd1b0d16ba15718cf26b98cd945ce9e6c Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Wed, 2 Nov 2022 11:07:12 +0100
+Subject: [PATCH 6/6] Add openmp target imported only if undefined
+
+---
+ RenderSystems/Tiny/CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/RenderSystems/Tiny/CMakeLists.txt b/RenderSystems/Tiny/CMakeLists.txt
+index 94412eb8e..64726da90 100644
+--- a/RenderSystems/Tiny/CMakeLists.txt
++++ b/RenderSystems/Tiny/CMakeLists.txt
+@@ -25,7 +25,9 @@ if(MSVC)
+ else()
+   find_package(llvm-openmp MODULE)
+   set(OpenMP_CXX_FOUND 1)
+-  add_library(OpenMP::OpenMP_CXX INTERFACE IMPORTED)
++  if(NOT TARGET OpenMP::OpenMP_CXX)
++    add_library(OpenMP::OpenMP_CXX INTERFACE IMPORTED)
++  endif()
+   target_link_libraries(OpenMP::OpenMP_CXX INTERFACE llvm-openmp::llvm-openmp)
+ endif()
+ if(OpenMP_CXX_FOUND)
+-- 
+2.30.2
+
