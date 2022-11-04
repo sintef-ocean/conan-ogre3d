@@ -457,9 +457,11 @@ class Ogre3dConan(ConanFile):
             comp.libs.append("OgreVolume")
 
         rend.includedirs = []
+        rend.libs = []
         if self.settings.os == "Windows":
-            rend.includedirs.append("bin")
-
+            rend.libdirs.append("bin")
+        elif self.settings.os == "Linux":
+            rend.libdirs.append("lib/OGRE")
         # Render systems
         include_RS = "include/OGRE/RenderSystems"
         if self.settings.os == "Windows":
@@ -483,13 +485,12 @@ class Ogre3dConan(ConanFile):
             rend.includedirs.append(f"{include_RS}/Vulkan")
             rend.libs.append("RenderSystem_Vulkan")
 
-        if self.settings.os != "Windows":
-            self.output.info("RenderSystem component has no libs on Linux")
-            rend.libs.clear()
-
         plug.includedirs = []
+        plug.libs = []
         if self.settings.os == "Windows":
-            plug.includedirs.append("bin")
+            plug.libdirs.append("bin")
+        elif self.settings.os == "Linux":
+            plug.libdirs.append("lib/OGRE")
 
         # Plugins
         include_P = "include/OGRE/Plugins"
@@ -528,12 +529,14 @@ class Ogre3dConan(ConanFile):
             plug.includedirs.append(f"{include_P}/STBICodec")
             plug.libs.append("Codec_STBI")
 
-        if self.settings.os != "Windows":
-            self.output.info("Plugins component has no libs on Linux")
-            plug.libs.clear()
-
         if self.settings.compiler == "Visual Studio" \
            and self.settings.build_type == "Debug":
             comp.libs = [lib + "_d" for lib in comp.libs]
+            rend.libs = [lib + "_d" for lib in rend.libs]
+            plug.libs = [lib + "_d" for lib in plug.libs]
+
+        if self.settings.compiler in ["gcc", "clang"]:
+            rend.libs = [lib + ".so" for lib in rend.libs]
+            plug.libs = [lib + ".so" for lib in plug.libs]
 
         # TODO: should strip away generated pkgconfig and cmake config?

@@ -61,12 +61,16 @@ The package is usually consumed using the `conan install` command or a *conanfil
 
 ## Package components
 
-We have added support for components using `cmake` and `cmake_find_package` generators. The following targets are available [EXPERIMENTAL]:
+We have added support for components using `cmake` and `cmake_find_package`
+generators. The following tqargets are available [EXPERIMENTAL]:
 
  - `Ogre3D::Ogre3D` - Depends on all components below
  - `Ogre3D::Components` - All built component libraries, including core libraries
- - `Ogre3D::Plugins` - Include directories of built plugins, and also import library files on Windows, depends on `Ogre3D::Components`
- - `Ogre3D::RenderSystems` - Include directories of built rendersystems, and also import library files on Windows, depends on `Ogre::Components`
+ - `Ogre3D::Plugins` - All built plugin and codec libraries, depends on `Ogre3D::Components`
+ - `Ogre3D::RenderSystems` - All built rendersystem libraries, depends on `Ogre::Components`
+
+ Typically, you only need to link `Ogre3D::Components`, but if you include headers from
+ any of the other features in you code, you need to link the corresponding targets.
 
 
 ## Package options
