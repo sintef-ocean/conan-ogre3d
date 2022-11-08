@@ -48,7 +48,7 @@ jobs:
             -o ogre3d:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ogre3d:rendersystem_vulkan=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ogre3d:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
-            -o ogre3d:enable_double=${{ ( matrix.configs == 'fhsim' && matrix.version != '13.4.0' ) && 'True' || 'False' }} \
+            -o ogre3d:enable_double=${{ ( matrix.configs == 'fhsim' && matrix.version != '13.4.0' && matrix.version != '13.5.0' ) && 'True' || 'False' }} \
             -c tools.system.package_manager:mode=install \
             . ${{ matrix.version }}@sintef/${SINTEF_CHANNEL}
       - name: Conan upload
