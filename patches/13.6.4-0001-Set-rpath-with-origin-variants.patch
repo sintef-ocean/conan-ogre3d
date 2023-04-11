@@ -1,17 +1,17 @@
-From 94e863813ed499c748c1439e895ebcb279e67a09 Mon Sep 17 00:00:00 2001
-From: Joakim Haugen <joakim.haugen@gmail.com>
-Date: Thu, 12 May 2022 10:11:03 +0200
-Subject: [PATCH] Set rpath with origin variants
+From 282b6a7854c3b4e3e0a7d82cab4876d550f45fe6 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Tue, 11 Apr 2023 15:33:55 +0200
+Subject: [PATCH 1/4] Set rpath with origin variants
 
 ---
  CMakeLists.txt | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b69e92980..80db0543c 100644
+index b7a7b8bf8..03c7293e0 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -448,8 +448,8 @@ mark_as_advanced(
+@@ -433,8 +433,8 @@ mark_as_advanced(
  ###################################################################
  include(ConfigureBuild)
  
@@ -23,5 +23,5 @@ index b69e92980..80db0543c 100644
  ###################################################################
  # disable way too common compiler warnings on project level
 -- 
-2.25.1
+2.30.2
 
