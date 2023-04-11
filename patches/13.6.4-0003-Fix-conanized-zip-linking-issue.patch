@@ -1,7 +1,7 @@
-From 9871de9d37fdbf65da2f012f75e694c6993f127f Mon Sep 17 00:00:00 2001
-From: Joakim Haugen <joakim.haugen@gmail.com>
-Date: Wed, 11 May 2022 16:02:25 +0200
-Subject: [PATCH 2/6] Fix zip linking issue for conanized
+From 68ea6cd214219eb803d087c95739e301288ba743 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Tue, 11 Apr 2023 15:54:18 +0200
+Subject: [PATCH 3/4] Fix conanized zip linking issue
 
 ---
  OgreMain/CMakeLists.txt      |    1 -
@@ -44,7 +44,7 @@ index b975c753b..8c6b61c3f 100644
  namespace Ogre
  {
 diff --git a/OgreMain/src/OgreZip.cpp b/OgreMain/src/OgreZip.cpp
-index ef4ea847f..4864c4945 100644
+index 195e2a0ad..e81565a8f 100644
 --- a/OgreMain/src/OgreZip.cpp
 +++ b/OgreMain/src/OgreZip.cpp
 @@ -28,7 +28,7 @@ THE SOFTWARE.
@@ -58,7 +58,7 @@ index ef4ea847f..4864c4945 100644
  namespace {
 diff --git a/OgreMain/src/zip/Ogre_zip.h b/OgreMain/src/zip/Ogre_zip.h
 new file mode 100644
-index 000000000..7ee1670f1
+index 000000000..dbcbc0441
 --- /dev/null
 +++ b/OgreMain/src/zip/Ogre_zip.h
 @@ -0,0 +1,443 @@
@@ -73,8 +73,8 @@ index 000000000..7ee1670f1
 + */
 +
 +#pragma once
-+#ifndef OGREZIP_H
-+#define OGREZIP_H
++#ifndef ZIP_H
++#define ZIP_H
 +
 +#include <stdint.h>
 +#include <string.h>
@@ -20902,5 +20902,5 @@ index dbcbc0441..000000000
 -
 -#endif
 -- 
-2.25.1
+2.30.2
 
