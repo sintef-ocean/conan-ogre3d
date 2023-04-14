@@ -8,14 +8,16 @@ env:
   CONAN_PASSWORD_SINTEF: ${{ secrets.CONAN_PASSWORD }}
   CONAN_LOGIN_USERNAME_SINTEF: ${{ secrets.CONAN_USER }}
   CONFIG_URL: https://github.com/sintef-ocean/conan-configs.git
-  SINTEF_CHANNEL: ${{ (github.head_ref || github.ref_name) == 'master' && 'stable' || 'testing' }}
 
 jobs:
   conan-with-clang:
     name: Conan
     runs-on: ubuntu-22.04
     env:
-      PKG_REFERENCE: "${{ matrix.conan == '1.0' && format('{0}{1}sintef/{2}', matrix.version, '@', ${SINTEF_CHANNEL}) || format('--version {0} --user sintef --channel {1}', matrix.version, ${SINTEF_CHANNEL}) }}"
+      PKG_REFERENCE: >-
+        ${{ matrix.conan == '1.0' &&
+        format('{0}@{1}/{2}', matrix.version, 'sintef', matrix.channel) ||
+        format('--version {0} --user {1} --channel {2}', matrix.version, 'sintef', matrix.channel) }}
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
       cppstd: "${{ matrix.compiler_version < 15 && 'gnu14' || 'gnu17' }}"
     strategy:
@@ -26,6 +28,7 @@ jobs:
         profile: [clang]
         compiler_version: [11, 12, 13, 14]
         build_type: [Debug, Release]
+        channel: ["${{ (github.head_ref || github.ref_name) == 'master' && 'stable' || 'testing' }}"]
     container:
       image: conanio/clang${{ matrix.compiler_version }}-ubuntu18.04
       options: -u 0
