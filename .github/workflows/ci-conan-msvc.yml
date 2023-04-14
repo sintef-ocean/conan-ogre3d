@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-2022
     env:
       USER_CHANNEL: "${{ matrix.conan == '1.0' && 'sintef/${{ env.SINTEF_CHANNEL }}' || '--user sintef --channel ${{ env.SINTEF_CHANNEL}' }}"
-      PKG_VERSION: "${{ matrix.conan == '1.0' && '${{ matrix.version }}@' || '--version ${{ matrix.version }} ' }}"
+      PKG_VERSION: "${{ matrix.conan == '1.0' && format('{0}{1}', ${{ matrix.version }}, '@') || format('--version {0} ', ${{ matrix.version }}) }}"
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
       cppstd: "${{ matrix.compiler_version < 11 && 'gnu14' || 'gnu17' }}"
     strategy:

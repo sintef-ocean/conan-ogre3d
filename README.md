@@ -123,7 +123,6 @@ We have added support for component targets [EXPERIMENTAL]:
 | enable_quad_buffer_stereo       | [True, False]     | False   |
 | enable_viewport_orientationmode | [True, False]     | False   |
 | enable_zip                      | [True, False]     | True    |
-|---------------------------------|-------------------|---------|
 
 To build and run tests, set `tools.build:skip_test=False` in `global.conf`, in `[conf]` or
 `--conf` as part of `conan install`. *Note:* Since `13.6.4` you need to set option
@@ -170,11 +169,12 @@ tests.
 
 ## Future recipe work:
 
-    - [ ] Enable plugin_rsimage (it needs a tool_requires rust, which is not available yet
-    - [ ] Allow building static (and add option fPIC at the same time)
-    - [ ] Ensure package info to mimic targets for ogre cmake and pkgconfig find scripts
-    - [ ] Add support for Macos, Emscripten, Android, and other platforms
-    - [ ] Rename package name to ogre and move to conan center?
+  The following tasks are on the horizon for this recipe
+  - [ ] Enable plugin_rsimage (it needs a tool_requires rust, which is not available yet
+  - [ ] Allow building static (and add option fPIC at the same time)
+  - [ ] Ensure package info to mimic targets for ogre cmake and pkgconfig find scripts
+  - [ ] Add support for Macos, Emscripten, Android, and other platforms
+  - [ ] Rename package name to ogre and move to conan center?
 
 ## Developer Notes
 
