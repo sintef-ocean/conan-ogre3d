@@ -15,8 +15,7 @@ jobs:
     name: Conan
     runs-on: windows-2022
     env:
-      USER_CHANNEL: "${{ matrix.conan == '1.0' && 'sintef/${{ env.SINTEF_CHANNEL }}' || '--user sintef --channel ${{ env.SINTEF_CHANNEL}' }}"
-      PKG_VERSION: "${{ matrix.conan == '1.0' && format('{0}{1}', matrix.version, '@') || format('--version {0} ', matrix.version) }}"
+      PKG_REFERENCE: "${{ matrix.conan == '1.0' && format('{0}{1}sintef/{2}', matrix.version, '@', env.SINTEF_CHANNEL) || format('--version {0} --user sintef --channel {1}', matrix.version, env.SINTEF_CHANNEL) }}"
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
       cppstd: "${{ matrix.compiler_version < 11 && 'gnu14' || 'gnu17' }}"
     strategy:
@@ -59,6 +58,6 @@ jobs:
             -o ogre3d/*:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} `
             -o ogre3d/*:component_bullet=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} `
             -b missing -b outdated -b ${{ env.package_name }}* `
-            . ${{ env.PKG_VERSION }}${{ env.USER_CHANNEL }}
+            . ${{ env.PKG_REFERENCE }}
       - name: Conan upload
         run: conan upload --confirm -r sintef ${{ env.package_name }}* --force ${{ env.UPLOAD_FLAGS }}
