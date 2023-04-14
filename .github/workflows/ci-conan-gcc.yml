@@ -40,7 +40,7 @@ jobs:
           pip3 install --upgrade setuptools pip
           pip3 install --upgrade conan~=${{ matrix.conan }}
       - name: Configure Conan
-        run: conan remote add sintef ${ env.CONAN_UPLOAD }
+        run: conan remote add sintef ${{ env.CONAN_UPLOAD }}
       - name: Get package name Conan 1
         if: matrix.conan == '1.0'
         run: echo "package_name=$(conan inspect --raw name .)" >> $GITHUB_ENV
