@@ -15,7 +15,7 @@ jobs:
     name: Conan
     runs-on: ubuntu-22.04
     env:
-      PKG_REFERENCE: "${{ matrix.conan == '1.0' && format('{0}{1}sintef/{2}', matrix.version, '@', $SINTEF_CHANNEL) || format('--version {0} --user sintef --channel {1}', matrix.version, $SINTEF_CHANNEL) }}"
+      PKG_REFERENCE: "${{ matrix.conan == '1.0' && format('{0}{1}sintef/{2}', matrix.version, '@', ${SINTEF_CHANNEL}) || format('--version {0} --user sintef --channel {1}', matrix.version, ${SINTEF_CHANNEL}) }}"
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
       cppstd: "${{ matrix.compiler_version < 11 && 'gnu14' || 'gnu17' }}"
     strategy:
