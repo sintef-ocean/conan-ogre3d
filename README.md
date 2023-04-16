@@ -69,7 +69,7 @@ We have added support for component targets [EXPERIMENTAL]:
  - `Ogre3D::RenderSystems` - All built rendersystem libraries, depends on `Ogre::Components`
 
  Typically, you only need to link `Ogre3D::Components`, but if you include headers from
- any of the other features in you code, you need to link the corresponding targets.
+ any of the other features in your code, you need to link the corresponding targets.
 
 ## Package options
 
@@ -101,6 +101,7 @@ We have added support for component targets [EXPERIMENTAL]:
 | plugin_particlefx               | [True, False]     | True    |
 | plugin_pcz                      | [True, False]     | True    |
 | plugin_stbi                     | [True, False]     | True    |
+| plugin_rsimage                  | [True, False]     | False   |
 | component_bites                 | [True, False]     | True    |
 | component_bullet                | [True, False]     | True    |
 | component_meshlodgenerator      | [True, False]     | True    |
@@ -127,7 +128,7 @@ We have added support for component targets [EXPERIMENTAL]:
 To build and run tests, set `tools.build:skip_test=False` in `global.conf`, in `[conf]` or
 `--conf` as part of `conan install`. *Note:* Since `13.6.4` you need to set option
 `install_samples=True` in addition to the default options to actually to build and run
-tests.
+tests. For simplicity, we require this option to be enabled for older versions too.
 
 
 ## Known recipe issues
@@ -144,35 +145,33 @@ tests.
   The conan recipe does not expose all options of the Ogre build script. The following
   variables currently use their default values as defined by the Ogre build system.
   ```
-    OGRE_BUILD_PLUGIN_RSIMAGE
+    OGRE_STATIC
+    OGRE_PROFILING
+    OGRE_RESOURCEMANAGER_STRICT         # Default (2)
+    OGRE_NODELESS_POSITIONING           # Deprecated
+    OGRE_BITES_STATIC_PLUGINS           # TODO
+    OGRE_BUILD_PLUGIN_CG                # Deprecated
+    OGRE_BUILD_XSIEXPORTER              # Needs SoftImage (unsupported)
+    OGRE_BUILD_RENDERSYSTEM_METAL       # TODO for macos
     OGRE_BUILD_MSVC_MP
     OGRE_BUILD_MSVC_ZM
-    OGRE_CONFIG_STATIC_LINK_CRT
-    OGRE_INSTALL_VSPROPS
-    OGRE_STATIC
-    OGRE_RESOURCEMANAGER_STRICT
-    OGRE_NODELESS_POSITIONING
-    OGRE_BUILD_PLUGIN_CG
-    OGRE_CONFIG_THREADS
-    OGRE_CONFIG_THREAD_PROVIDER
-    OGRE_PROFILING
-    OGRE_CONFIG_FILESYSTEM_UNICODE
-    OGRE_INSTALL_PDB
     OGRE_BUILD_LIBS_AS_FRAMEWORKS
-    OGRE_BITES_STATIC_PLUGINS
-    OGRE_INSTALL_DOCS # set to false
-    OGRE_BUILD_XSIEXPORTER
-    OGRE_BUILD_RENDERSYSTEM_METAL
+    OGRE_CONFIG_STATIC_LINK_CRT
+    OGRE_CONFIG_FILESYSTEM_UNICODE
+    OGRE_CONFIG_THREADS                 # Default (3)
+    OGRE_CONFIG_THREAD_PROVIDER         # Default (std)
     OGRE_CONFIG_ENABLE_TBB_SCHEDULER
     OGRE_CONFIG_ENABLE_GLES2_CG_SUPPORT
+    OGRE_INSTALL_DOCS                   # Forced to false
+    OGRE_INSTALL_PDB
+    OGRE_INSTALL_VSPROPS
   ```
 
 ## Future recipe work:
 
   The following tasks are on the horizon for this recipe
-  - [ ] Enable plugin_rsimage (it needs a tool_requires rust, which is not available yet
-  - [ ] Allow building static (and add option fPIC at the same time)
-  - [ ] Ensure package info to mimic targets for ogre cmake and pkgconfig find scripts
+  - [ ] Allow static build and add option fPIC
+  - [ ] Ensure package info to follow native ogre's cmake and pkgconfig find scripts
   - [ ] Add support for Macos, Emscripten, Android, and other platforms
   - [ ] Rename package name to ogre and move to conan center?
 

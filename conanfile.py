@@ -1,4 +1,5 @@
 from os import path
+from shutil import which
 
 from conan import ConanFile
 from conan.tools.scm import Version
@@ -51,6 +52,7 @@ class Ogre3dConan(ConanFile):
         "plugin_particlefx": [True, False],
         "plugin_pcz": [True, False],
         "plugin_stbi": [True, False],
+        "plugin_rsimage": [True, False],
         "component_bites": [True, False],
         "component_bullet": [True, False],
         "component_meshlodgenerator": [True, False],
@@ -102,6 +104,7 @@ class Ogre3dConan(ConanFile):
         "plugin_particlefx": True,
         "plugin_pcz": True,
         "plugin_stbi": True,
+        "plugin_rsimage": False,
         "component_bites": True,
         "component_bullet": True,
         "component_meshlodgenerator": True,
@@ -155,6 +158,19 @@ class Ogre3dConan(ConanFile):
             or self.options.bindings_java \
             or self.options.bindings_python
 
+    def _cargo_new_enough(self, required_version):
+        try:
+            if not which("cargo"):
+                return False
+            import re
+            from io import StringIO
+            output = StringIO()
+            self.run("cargo --version", output)
+            m = re.search(r"cargo (\d+\.\d+\.\d+)", output.getvalue())
+            return Version(m.group(1)) >= required_version
+        except:
+            return False
+
     def _cmake_new_enough(self, required_version):
         try:
             import re
@@ -175,6 +191,9 @@ class Ogre3dConan(ConanFile):
             del self.options.rendersystem_direct3d11
         if Version(self.version) < "13.4.0":
             del self.options.component_bullet
+
+        if Version(self.version) < "13.6.4":
+            del self.options.plugin_rsimage
 
     def configure(self):
         self.options["freetype"].shared = False
@@ -264,6 +283,11 @@ class Ogre3dConan(ConanFile):
 
     def validate(self):
 
+        if self.options.get_safe("plugin_rsimage", False) \
+           and not self._cargo_new_enough("1.56.0"):
+            raise ConanInvalidConfiguration(
+                "'plugin_rsimage' needs Rust/Cargo, but was not found or too old; >=1.56.0")
+
         if self.settings.os not in ["Windows", "Linux"]:
             # TODO: support macos, emscripten, android, apple_ios
             raise ConanInvalidConfiguration(
@@ -302,6 +326,9 @@ class Ogre3dConan(ConanFile):
 
         if not self._cmake_new_enough("3.16"):
             self.tool_requires(f"cmake/{deps['cmake']}")
+
+        if self.options.get_safe("plugin_rsimage", False):
+            pass  # self.tool_requires(f"rustup/{deps['rustup']}")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
@@ -345,6 +372,7 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{plugins}_PCZ"] = self.options.plugin_pcz
         tc.variables[f"{plugins}_PFX"] = self.options.plugin_particlefx
         tc.variables[f"{plugins}_STBI"] = self.options.plugin_stbi
+        tc.variables[f"{plugins}_RSIMAGE"] = self.options.get_safe("plugin_rsimage", False)
 
         comp = "OGRE_BUILD_COMPONENT"
         tc.variables[f"{comp}_CSHARP"] = self.options.bindings_csharp
@@ -605,6 +633,9 @@ class Ogre3dConan(ConanFile):
         if self.options.plugin_stbi:
             plug.includedirs.append(f"{include_P}/STBICodec")
             plug.libs.append("Codec_STBI")
+        if self.options.get_safe("plugin_rsimage", False):
+            plug.includedirs.append(f"{include_P}/RsImageCodec")
+            plug.libs.append("Codec_RsImage")
 
         if is_msvc(self) and self.settings.build_type == "Debug":
             comp.libs = [lib + "_d" for lib in comp.libs]
