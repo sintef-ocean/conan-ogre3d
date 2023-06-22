@@ -1,5 +1,5 @@
 [![Linux GCC](https://github.com/sintef-ocean/conan-ogre3d/workflows/Linux%20GCC/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Linux+GCC")
-[![Linux Clang](https://github.com/sintef-ocean/conan-ogre3d/workflows/Linux%20Clang/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Linx+Clang")
+[![Linux Clang](https://github.com/sintef-ocean/conan-ogre3d/workflows/Linux%20Clang/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Linux+Clang")
 [![Windows MSVC](https://github.com/sintef-ocean/conan-ogre3d/workflows/Windows%20MSVC/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Windows+MSVC")
 
 [Conan.io](https://conan.io) recipe for [Ogre3D](https://www.ogre3d.org).
