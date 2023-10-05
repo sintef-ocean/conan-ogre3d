@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        conan: ["1.0", "2.0"]
+        conan: ["2.0"]
         version: [13.5.0, 13.6.4]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
