@@ -1,4 +1,5 @@
 from os import path
+from shutil import which
 
 from conan import ConanFile
 from conan.tools.scm import Version
@@ -51,6 +52,7 @@ class Ogre3dConan(ConanFile):
         "plugin_particlefx": [True, False],
         "plugin_pcz": [True, False],
         "plugin_stbi": [True, False],
+        "plugin_rsimage": [True, False],
         "component_bites": [True, False],
         "component_bullet": [True, False],
         "component_meshlodgenerator": [True, False],
@@ -102,6 +104,7 @@ class Ogre3dConan(ConanFile):
         "plugin_particlefx": True,
         "plugin_pcz": True,
         "plugin_stbi": True,
+        "plugin_rsimage": False,
         "component_bites": True,
         "component_bullet": True,
         "component_meshlodgenerator": True,
@@ -155,6 +158,30 @@ class Ogre3dConan(ConanFile):
             or self.options.bindings_java \
             or self.options.bindings_python
 
+    def _cargo_new_enough(self, required_version):
+        try:
+            if not which("cargo"):
+                return False
+            import re
+            from io import StringIO
+            output = StringIO()
+            self.run("cargo --version", output)
+            m = re.search(r"cargo (\d+\.\d+\.\d+)", output.getvalue())
+            return Version(m.group(1)) >= required_version
+        except:
+            return False
+
+    def _cmake_new_enough(self, required_version):
+        try:
+            import re
+            from io import StringIO
+            output = StringIO()
+            self.run("cmake --version", output)
+            m = re.search(r"cmake version (\d+\.\d+\.\d+)", output.getvalue())
+            return Version(m.group(1)) >= required_version
+        except:
+            return False
+
     def export_sources(self):
         export_conandata_patches(self)
 
@@ -164,6 +191,9 @@ class Ogre3dConan(ConanFile):
             del self.options.rendersystem_direct3d11
         if Version(self.version) < "13.4.0":
             del self.options.component_bullet
+
+        if Version(self.version) < "13.6.4":
+            del self.options.plugin_rsimage
 
     def configure(self):
         self.options["freetype"].shared = False
@@ -198,19 +228,16 @@ class Ogre3dConan(ConanFile):
                 self.requires(f"qt/{deps['qt5']}")  # private=False
             else:
                 self.requires(f"qt/{deps['qt6']}")  # private=False
-        if self.options.rendersystem_opengl:
+        if self.options.rendersystem_opengl or \
+           self.options.rendersystem_opengl3:
             self.requires(f"opengl/{deps['opengl']}")
-            if self.settings.os != "Windows":
-                self.requires(f"egl/{deps['egl']}")
-        if self.options.rendersystem_opengl3:
-            self.requires(f"opengl/{deps['opengl']}")
-            if self.settings.os != "Windows":
-                self.requires(f"egl/{deps['egl']}")
+        if (self.options.rendersystem_opengl or
+           self.options.rendersystem_opengl3 or
+           self.options.rendersystem_opengles) and \
+           self.settings.os != "Windows":
+            self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_opengles:
-            self.output.warn("OpenGL ES requirement not handled by conan")
-            # debian: libgles2-mesa-dev
-            if self.settings.os != "Windows":
-                self.requires(f"egl/{deps['egl']}")
+            self.output.warning("OpenGL ES requirement not handled by conan")
         if self.options.rendersystem_tiny and self.settings.os != "Windows":
             self.requires(f"llvm-openmp/{deps['llvm-openmp']}")  # private=True
         if self.options.rendersystem_vulkan:
@@ -235,10 +262,11 @@ class Ogre3dConan(ConanFile):
         if self.settings.os == "Linux":
             self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
 
-        # with_sdl a conflict arises for zlib..
-        if self.options.with_sdl or self.options.plugin_assimp \
-           or self.options.plugin_freeimage or self.options.plugin_exrcodec:
-            self.requires(f"zlib/{deps['zlib']}", override=True)
+        if self.options.with_sdl or self.options.plugin_assimp or \
+           self.options.plugin_exrcodec or \
+           self.options.plugin_stbi or self.options.plugin_freeimage:
+            do_override = not (self.options.plugin_stbi or self.options.plugin_freeimage)
+            self.requires(f"zlib/{deps['zlib']}", override=do_override)
 
         if self.options.with_qt in ["5", "6"]:
             self.requires(f"openssl/{deps['openssl']}", override=True)
@@ -254,6 +282,11 @@ class Ogre3dConan(ConanFile):
                 self.requires(f"libpng/{deps['libpng']}", override=True)
 
     def validate(self):
+
+        if self.options.get_safe("plugin_rsimage", False) \
+           and not self._cargo_new_enough("1.56.0"):
+            raise ConanInvalidConfiguration(
+                "'plugin_rsimage' needs Rust/Cargo, but was not found or too old; >=1.56.0")
 
         if self.settings.os not in ["Windows", "Linux"]:
             # TODO: support macos, emscripten, android, apple_ios
@@ -290,6 +323,12 @@ class Ogre3dConan(ConanFile):
 
         if self._build_testing:
             self.test_requires(f"gtest/{deps['gtest']}")
+
+        if not self._cmake_new_enough("3.16"):
+            self.tool_requires(f"cmake/{deps['cmake']}")
+
+        if self.options.get_safe("plugin_rsimage", False):
+            pass  # self.tool_requires(f"rustup/{deps['rustup']}")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
@@ -333,6 +372,7 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{plugins}_PCZ"] = self.options.plugin_pcz
         tc.variables[f"{plugins}_PFX"] = self.options.plugin_particlefx
         tc.variables[f"{plugins}_STBI"] = self.options.plugin_stbi
+        tc.variables[f"{plugins}_RSIMAGE"] = self.options.get_safe("plugin_rsimage", False)
 
         comp = "OGRE_BUILD_COMPONENT"
         tc.variables[f"{comp}_CSHARP"] = self.options.bindings_csharp
@@ -397,10 +437,7 @@ class Ogre3dConan(ConanFile):
         cmake.build()
 
         if self._build_testing and can_run(self):
-            prefx = "./" if self.settings.os != "Windows" else ""
-            self.run(f"{prefx}Test_Ogre",
-                     cwd=path.join(self.build_folder, "bin"),
-                     env="conanbuild")
+            cmake.test()
 
     def package(self):
         cmake = CMake(self)
@@ -438,30 +475,25 @@ class Ogre3dConan(ConanFile):
         rend = components["rendersystems"]
 
         if self.options.with_freetype:
-            pass  # private:  freetype::freetype
+            comp.requires.append("freetype::freetype")
         if self.options.component_bullet:
             comp.requires.append("bullet3::bullet3")
         if self.settings.os == "Linux":
             comp.requires.append("xorg::xorg")
         if self.options.with_sdl:
-            pass  # private: sdl::sdl
-
+            comp.requires.append("sdl::sdl")
         if self.options.with_qt in ["5", "6"]:
             comp.requires.append("qt::qt")
 
-        if self.options.rendersystem_opengl:
+        if self.options.rendersystem_opengl or self.options.rendersystem_opengl3:
             rend.requires.append("opengl::opengl")
-            if self.settings.os == "Linux":
-                rend.requires.append("egl::egl")
-        if self.options.rendersystem_opengl3:
-            rend.requires.append("opengl::opengl")
-            if self.settings.os == "Linux":
-                rend.requires.append("egl::egl")
-        if self.options.rendersystem_opengles:
-            if self.settings.os == "Linux":
-                rend.requires.append("egl::egl")
+        if (self.options.rendersystem_opengl or
+            self.options.rendersystem_opengl3 or
+            self.options.rendersystem_opengles) and \
+           self.settings.os == "Linux":
+            rend.requires.append("egl::egl")
         if self.options.rendersystem_tiny and self.settings.os == "Windows":
-            pass  # private: llvm-openmpl::llvm-openmpl
+            rend.requires.append("llvm-openmpl::llvm-openmpl")
         if self.options.rendersystem_vulkan:
             rend.requires.append("vulkan-loader::vulkan-loader")
 
@@ -478,6 +510,8 @@ class Ogre3dConan(ConanFile):
             plug.requires.append("assimp::assimp")
         if self.options.plugin_exrcodec:
             plug.requires.append("openexr::openexr")
+        if self.options.plugin_stbi or self.options.plugin_freeimage:
+            plug.requires.append("zlib::zlib")
 
         plug.requires.append("components")
 
@@ -599,6 +633,9 @@ class Ogre3dConan(ConanFile):
         if self.options.plugin_stbi:
             plug.includedirs.append(f"{include_P}/STBICodec")
             plug.libs.append("Codec_STBI")
+        if self.options.get_safe("plugin_rsimage", False):
+            plug.includedirs.append(f"{include_P}/RsImageCodec")
+            plug.libs.append("Codec_RsImage")
 
         if is_msvc(self) and self.settings.build_type == "Debug":
             comp.libs = [lib + "_d" for lib in comp.libs]
