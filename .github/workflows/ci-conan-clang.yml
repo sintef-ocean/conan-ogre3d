@@ -19,13 +19,12 @@ jobs:
         format('{0}@{1}/{2}', matrix.version, 'sintef', matrix.channel) ||
         format('--version {0} --user {1} --channel {2}', matrix.version, 'sintef', matrix.channel) }}
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
-      TROUBLESOME_PKGS: "-b ninja/*"
       cppstd: "${{ matrix.compiler_version < 15 && 'gnu14' || 'gnu17' }}"
     strategy:
       fail-fast: false
       matrix:
         conan: ["2.0"]
-        version: [13.5.0, 13.6.4]
+        version: [13.5.0, 13.6.5]
         build_type: [Debug, Release]
         profile: [clang]
         compiler_version: [11, 12, 13, 14]
@@ -58,7 +57,6 @@ jobs:
             -s compiler.version=${{ matrix.compiler_version }} \
             -s compiler.cppstd=${{ env.cppstd }} \
             -pr:b=${{ matrix.profile }} -pr:h=${{ matrix.profile }} \
-            -b missing -b outdated -b ${{ env.package_name }}* \
-            ${{ env.TROUBLESOME_PKGS }} . ${{ env.PKG_REFERENCE }}
+            -b missing -b outdated -b ${{ env.package_name }}* . ${{ env.PKG_REFERENCE }}
       - name: Conan upload
         run: conan upload --confirm -r sintef ${{ env.package_name }}* --force ${{ env.UPLOAD_FLAGS }}

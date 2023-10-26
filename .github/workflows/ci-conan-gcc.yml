@@ -19,13 +19,12 @@ jobs:
         format('{0}@{1}/{2}', matrix.version, 'sintef', matrix.channel) ||
         format('--version {0} --user {1} --channel {2}', matrix.version, 'sintef', matrix.channel) }}
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
-      TROUBLESOME_PKGS: "-b ninja/* -b bison/* -b wayland/* -b wayland-protocols/* -b libxml2/*"
       cppstd: "${{ matrix.compiler_version < 11 && 'gnu14' || 'gnu17' }}"
     strategy:
       fail-fast: false
       matrix:
         conan: ["2.0"]
-        version: [13.5.0, 13.6.4]
+        version: [13.5.0, 13.6.5]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
         profile: [gcc]
@@ -62,7 +61,6 @@ jobs:
             -o ${{ env.pkg_name }}/*:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ${{ env.pkg_name }}/*:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ${{ env.pkg_name }}/*:component_bullet=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
-            -b missing -b outdated -b ${{ env.pkg_name }}* \
-            ${{ env.TROUBLESOME_PKGS }} . ${{ env.PKG_REFERENCE }}
+            -b missing -b outdated -b ${{ env.pkg_name }}* . ${{ env.PKG_REFERENCE }}
       - name: Conan upload
         run: conan upload --confirm -r sintef ${{ env.pkg_name }}* --force ${{ env.UPLOAD_FLAGS }}

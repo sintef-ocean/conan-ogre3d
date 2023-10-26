@@ -66,7 +66,7 @@ We have added support for component targets [EXPERIMENTAL]:
  - `Ogre3D::Ogre3D` - Depends on all components below
  - `Ogre3D::Components` - All built component libraries, including core libraries
  - `Ogre3D::Plugins` - All built plugin and codec libraries, depends on `Ogre3D::Components`
- - `Ogre3D::RenderSystems` - All built rendersystem libraries, depends on `Ogre::Components`
+ - `Ogre3D::RenderSystems` - All built rendersystem libraries, depends on `Ogre3D::Components`
 
  Typically, you only need to link `Ogre3D::Components`, but if you include headers from
  any of the other features in your code, you need to link the corresponding targets.

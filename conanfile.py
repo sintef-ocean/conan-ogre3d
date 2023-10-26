@@ -196,22 +196,22 @@ class Ogre3dConan(ConanFile):
             del self.options.plugin_rsimage
 
     def configure(self):
-        self.options["freetype"].shared = False
-        self.options["assimp"].shared = False
-        self.options["pugixml"].shared = False
-        self.options["openexr"].shared = False
-        self.options["glslang"].shared = False
-        self.options["bullet3"].shared = False
+        self.options["freetype/*"].shared = False
+        self.options["assimp/*"].shared = False
+        self.options["pugixml/*"].shared = False
+        self.options["openexr/*"].shared = False
+        self.options["glslang/*"].shared = False
+        self.options["bullet3/*"].shared = False
         if self.settings.os != "Windows":
-            self.options["llvm-openmp"].shared = False
-            self.options["llvm-openmp"].fPIC = True
+            self.options["llvm-openmp/*"].shared = False
+            self.options["llvm-openmp/*"].fPIC = True
 
         if self.options.with_qt in ["5", "6"]:
             self.output.warn("Qt required to be shared for now")
-            self.options["qt"].shared = True
+            self.options["qt/*"].shared = True
 
         if self.options.rendersystem_vulkan:
-            self.options["qt"].with_vulkan = True
+            self.options["qt/*"].with_vulkan = True
 
     def layout(self):
         cmake_layout(self, src_folder="src")
