@@ -1,45 +1,44 @@
-From 9cc3c1972006416e83899bd05b01ed3171353328 Mon Sep 17 00:00:00 2001
+From 823988c0df5cc52e95d19e23bec677267e0723f2 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
-Date: Thu, 26 Oct 2023 11:13:13 +0200
-Subject: [PATCH 1/2] Do conanization fixes
+Date: Thu, 26 Oct 2023 15:08:14 +0200
+Subject: [PATCH] Do conanization fixes
 
 ---
- CMake/Dependencies.cmake              | 72 ++++++++++++++++-----------
+ CMake/Dependencies.cmake              | 70 +++++++++++++++------------
  CMake/Utils/MacroLogFeature.cmake     |  2 +-
- CMakeLists.txt                        | 21 +++++---
+ CMakeLists.txt                        | 15 ++++--
  Components/Bullet/CMakeLists.txt      |  3 +-
  Components/Csharp/CMakeLists.txt      |  2 +-
  Components/Java/CMakeLists.txt        |  2 +-
- Components/Overlay/CMakeLists.txt     | 12 +++--
+ Components/Overlay/CMakeLists.txt     | 11 +++--
  Components/Python/CMakeLists.txt      |  2 +-
  PlugIns/Assimp/CMakeLists.txt         |  2 +-
  PlugIns/DotScene/CMakeLists.txt       |  2 +-
- PlugIns/FreeImageCodec/CMakeLists.txt |  7 ++-
+ PlugIns/FreeImageCodec/CMakeLists.txt |  8 +--
  PlugIns/GLSLang/CMakeLists.txt        | 21 ++++----
  RenderSystems/Tiny/CMakeLists.txt     | 12 ++++-
  RenderSystems/Vulkan/CMakeLists.txt   |  3 +-
  Tests/CMakeLists.txt                  |  2 +-
  Tools/AssimpConverter/CMakeLists.txt  |  3 --
  Tools/XMLConverter/CMakeLists.txt     |  2 +-
- 17 files changed, 100 insertions(+), 70 deletions(-)
+ 17 files changed, 92 insertions(+), 70 deletions(-)
 
 diff --git a/CMake/Dependencies.cmake b/CMake/Dependencies.cmake
-index 4cec2898d..366db14f6 100644
+index 9c267efdf..25859e295 100644
 --- a/CMake/Dependencies.cmake
 +++ b/CMake/Dependencies.cmake
-@@ -81,8 +81,9 @@ if (UNIX AND NOT EMSCRIPTEN)
+@@ -80,10 +80,6 @@ if (UNIX AND NOT EMSCRIPTEN)
+   set(OGRE_DEP_SEARCH_PATH ${OGRE_DEP_SEARCH_PATH} /usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
  endif ()
  
- # give guesses as hints to the find_package calls
+-# give guesses as hints to the find_package calls
 -set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OGRE_DEP_SEARCH_PATH})
 -set(CMAKE_FRAMEWORK_PATH ${CMAKE_FRAMEWORK_PATH} ${OGRE_DEP_SEARCH_PATH})
-+#set(OGRE_DEP_SEARCH_PATH ${CMAKE_BINARY_PATH})
-+#set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OGRE_DEP_SEARCH_PATH})
-+#set(CMAKE_FRAMEWORK_PATH ${CMAKE_FRAMEWORK_PATH} ${OGRE_DEP_SEARCH_PATH})
- 
+-
  if(OGRE_BUILD_DEPENDENCIES AND NOT EXISTS ${OGREDEPS_PATH})
      message(STATUS "Building pugixml")
-@@ -210,11 +211,18 @@ endif()
+     file(DOWNLOAD
+@@ -210,12 +206,16 @@ endif()
  #######################################################################
  
  # Find FreeImage
@@ -52,16 +51,15 @@ index 4cec2898d..366db14f6 100644
  
  # Find FreeType
 -find_package(Freetype)
+-macro_log_feature(FREETYPE_FOUND "freetype" "Portable font engine" "http://www.freetype.org")
 +if(OGRE_WITH_FREETYPE)
 +  find_package(Freetype REQUIRED)
-+  set(FREETYPE_FOUND TRUE)
-+else()
-+  set(FREETYPE_FOUND OFF)
 +endif()
- macro_log_feature(FREETYPE_FOUND "freetype" "Portable font engine" "http://www.freetype.org")
++macro_log_feature(Freetype_FOUND "freetype" "Portable font engine" "http://www.freetype.org")
  
  # Find X11
-@@ -262,16 +270,25 @@ endif()
+ if (UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
+@@ -262,16 +262,25 @@ endif()
  
  # Find Cg
  if (NOT (APPLE_IOS OR WINDOWS_STORE OR WINDOWS_PHONE OR ANDROID OR EMSCRIPTEN))
@@ -89,7 +87,7 @@ index 4cec2898d..366db14f6 100644
  
  # Python
  set(Python_ADDITIONAL_VERSIONS 3.4) # allows using python3 on Ubuntu 14.04
-@@ -280,7 +297,7 @@ find_package(PythonLibs)
+@@ -280,7 +289,7 @@ find_package(PythonLibs)
  macro_log_feature(PYTHONLIBS_FOUND "Python" "Language bindings to use OGRE from Python" "http://www.python.org/")
  
  # SWIG
@@ -98,7 +96,7 @@ index 4cec2898d..366db14f6 100644
  macro_log_feature(SWIG_FOUND "SWIG" "Language bindings (Python, Java, C#) for OGRE" "http://www.swig.org/")
  
  # pugixml
-@@ -288,7 +305,7 @@ find_package(pugixml QUIET)
+@@ -288,7 +297,7 @@ find_package(pugixml QUIET)
  macro_log_feature(pugixml_FOUND "pugixml" "Needed for XMLConverter and DotScene Plugin" "https://pugixml.org/")
  
  # Find zlib
@@ -107,7 +105,7 @@ index 4cec2898d..366db14f6 100644
  macro_log_feature(ZLIB_FOUND "zlib" "Simple data compression library" "http://www.zlib.net")
  
  # Assimp
-@@ -299,17 +316,6 @@ macro_log_feature(assimp_FOUND "Assimp" "Needed for the AssimpLoader Plugin" "ht
+@@ -299,17 +308,6 @@ macro_log_feature(assimp_FOUND "Assimp" "Needed for the AssimpLoader Plugin" "ht
  find_package(Bullet QUIET)
  macro_log_feature(BULLET_FOUND "Bullet" "Bullet physics" "https://pybullet.org")
  
@@ -125,7 +123,7 @@ index 4cec2898d..366db14f6 100644
  
  #######################################################################
  # Samples dependencies
-@@ -318,18 +324,26 @@ endif()
+@@ -318,18 +316,26 @@ endif()
  # Find sdl2
  if(NOT ANDROID AND NOT EMSCRIPTEN)
    # find script does not work in cross compilation environment
@@ -160,7 +158,7 @@ index 4cec2898d..366db14f6 100644
  
    macro_log_feature(QT_FOUND "Qt" "optional integration with the Qt Library for window creation and input" "http://www.qt.io/")
  endif()
-@@ -342,5 +356,5 @@ find_package(Doxygen QUIET)
+@@ -342,5 +348,5 @@ find_package(Doxygen QUIET)
  macro_log_feature(DOXYGEN_FOUND "Doxygen" "Tool for building API documentation" "http://doxygen.org")
  
  # Find Softimage SDK
@@ -181,18 +179,18 @@ index b3a4eee65..d0473e915 100644
  
     SET(_dlist 0)
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 0f4092daf..718a84ce6 100644
+index 6e94a8052..8503a4f97 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -68,6 +68,7 @@ if (APPLE AND NOT ANDROID)
+@@ -67,6 +67,7 @@ if (APPLE AND NOT ANDROID)
  endif ()
  
- project(OGRE VERSION 13.6.5)
+ project(OGRE VERSION 14.1.0)
 +add_compile_definitions(QT_NO_VERSION_TAGGING)
  
  # extra version info
  set(OGRE_VERSION_SUFFIX "")
-@@ -79,7 +80,7 @@ set(OGRE_VERSION_DASH_SEPARATED "${OGRE_VERSION_MAJOR}-${OGRE_VERSION_MINOR}-${O
+@@ -78,7 +79,7 @@ set(OGRE_VERSION_DASH_SEPARATED "${OGRE_VERSION_MAJOR}-${OGRE_VERSION_MINOR}-${O
  
  
  # Include necessary submodules
@@ -201,16 +199,7 @@ index 0f4092daf..718a84ce6 100644
    "${PROJECT_SOURCE_DIR}/CMake"
    "${PROJECT_SOURCE_DIR}/CMake/Utils"
    "${PROJECT_SOURCE_DIR}/CMake/Packages"
-@@ -163,7 +164,7 @@ if (MSVC)
- 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
-   endif ()
- 
--  if (OGRE_PROJECT_FOLDERS)  
-+  if (OGRE_PROJECT_FOLDERS)
-     # Turn on the ability to create folders to organize projects (.vcproj)
-     # It creates "CMakePredefinedTargets" folder by default and adds CMake
-     # defined projects like INSTALL.vcproj and ZERO_CHECK.vcproj
-@@ -201,11 +202,15 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU") AND NOT OGRE_STATIC)
+@@ -200,11 +201,15 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU") AND NOT OGRE_STATIC)
  endif()
  
  # determine system endianess
@@ -220,23 +209,14 @@ index 0f4092daf..718a84ce6 100644
    # MSVC only builds for intel anyway
    # all IOS devices are little endian
    set(OGRE_TEST_BIG_ENDIAN FALSE)
-+  # The test will fail if Qt6 is a requirement, unknown why
++  # Test will will if Qt6 is a requirement, unknown why
 +  if(QT_VERSION_MAJOR STREQUAL 6)
 +    message(WARNING "OGRE_TEST_BIG_ENDIAN set to FALSE without testing")
 +  endif()
  else()
    include(TestBigEndian)
    test_big_endian(OGRE_TEST_BIG_ENDIAN)
-@@ -292,7 +297,7 @@ include(Dependencies)
- # Customise what to build
- option(OGRE_STATIC "Static build" FALSE)
- cmake_dependent_option(OGRE_ENABLE_PRECOMPILED_HEADERS "Use precompiled headers to speed up build" TRUE "NOT MINGW; NOT EMSCRIPTEN" FALSE)
--set(OGRE_RESOURCEMANAGER_STRICT "2" CACHE STRING 
-+set(OGRE_RESOURCEMANAGER_STRICT "2" CACHE STRING
-   "Make ResourceManager strict for faster operation. Possible values:
-   0 - OFF search in all groups twice - for case sensitive and insensitive lookup [DEPRECATED]
-   1 - PEDANTIC require an explicit resource group. Case sensitive lookup.
-@@ -325,6 +330,10 @@ cmake_dependent_option(OGRE_BUILD_PLUGIN_CG "Build Cg plugin" TRUE "Cg_FOUND;NOT
+@@ -321,6 +326,10 @@ cmake_dependent_option(OGRE_BUILD_PLUGIN_CG "Build Cg plugin" TRUE "Cg_FOUND;NOT
  option(OGRE_BUILD_PLUGIN_GLSLANG "Build glslang plugin" ${OGRE_BUILD_RENDERSYSTEM_VULKAN}) # no way to determine whether glslang is present
  option(OGRE_BUILD_COMPONENT_OVERLAY "Build Overlay component" TRUE)
  
@@ -247,16 +227,7 @@ index 0f4092daf..718a84ce6 100644
  cmake_dependent_option(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI "Include dear imgui in Overlays" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
  
  cmake_dependent_option(OGRE_BUILD_COMPONENT_BITES "Build OgreBites component" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
-@@ -343,7 +352,7 @@ cmake_dependent_option(OGRE_BUILD_LIBS_AS_FRAMEWORKS "Build frameworks for libra
- cmake_dependent_option(OGRE_BUILD_TESTS "Build the unit tests & PlayPen" FALSE "OGRE_BUILD_COMPONENT_BITES" FALSE)
- option(OGRE_CONFIG_DOUBLE "Use doubles instead of floats in Ogre" FALSE)
- option(OGRE_CONFIG_NODE_INHERIT_TRANSFORM "Tells the node whether it should inherit full transform from it's parent node or derived position, orientation and scale" FALSE)
--set(OGRE_CONFIG_THREADS "3" CACHE STRING 
-+set(OGRE_CONFIG_THREADS "3" CACHE STRING
- 	"Enable Ogre thread safety support for multithreading. Possible values:
- 	0 - no thread safety. DefaultWorkQueue is not threaded.
- 	1 - background resource preparation and loading is thread safe. Threaded DefaultWorkQueue. [DEPRECATED]
-@@ -359,7 +368,7 @@ set(OGRE_CONFIG_THREAD_PROVIDER "std" CACHE STRING
+@@ -355,7 +364,7 @@ set(OGRE_CONFIG_THREAD_PROVIDER "std" CACHE STRING
  	std   - STL thread library (requires compiler support)."
  )
  set_property(CACHE OGRE_CONFIG_THREAD_PROVIDER PROPERTY STRINGS boost poco tbb std)
@@ -285,7 +256,7 @@ index 670f85a2c..257b8b28c 100644
  
  generate_export_header(OgreBullet
 diff --git a/Components/Csharp/CMakeLists.txt b/Components/Csharp/CMakeLists.txt
-index 96a50ff21..1f437a694 100644
+index 36d4e1e34..37c799b21 100644
 --- a/Components/Csharp/CMakeLists.txt
 +++ b/Components/Csharp/CMakeLists.txt
 @@ -16,7 +16,7 @@ if(NOT CMAKE_CSharp_COMPILER)
@@ -298,7 +269,7 @@ index 96a50ff21..1f437a694 100644
  if(MSVC)
  	add_definitions(/bigobj /wd4700)
 diff --git a/Components/Java/CMakeLists.txt b/Components/Java/CMakeLists.txt
-index 7e664d318..b5f36ae64 100644
+index baa72dcdd..1082c547a 100644
 --- a/Components/Java/CMakeLists.txt
 +++ b/Components/Java/CMakeLists.txt
 @@ -16,7 +16,7 @@ endif()
@@ -311,7 +282,7 @@ index 7e664d318..b5f36ae64 100644
  if(MSVC)
  	add_definitions(/bigobj /wd4700)
 diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
-index 0c74ce293..c2507a8f8 100644
+index 9b6f7908f..0358760f1 100644
 --- a/Components/Overlay/CMakeLists.txt
 +++ b/Components/Overlay/CMakeLists.txt
 @@ -34,7 +34,7 @@ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
@@ -323,7 +294,7 @@ index 0c74ce293..c2507a8f8 100644
      set(IMGUI_ENABLE_FREETYPE TRUE)
      list(APPEND SOURCE_FILES ${IMGUI_DIR}/misc/freetype/imgui_freetype.cpp)
    endif()
-@@ -50,10 +50,10 @@ target_include_directories(OgreOverlay PUBLIC
+@@ -50,10 +50,9 @@ target_include_directories(OgreOverlay PUBLIC
    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
    $<INSTALL_INTERFACE:include/OGRE/Overlay>)
  
@@ -333,11 +304,10 @@ index 0c74ce293..c2507a8f8 100644
 -  target_link_libraries(OgreOverlay PRIVATE ${FREETYPE_LIBRARIES})
 -  target_include_directories(OgreOverlay PRIVATE ${FREETYPE_INCLUDE_DIRS})
 +  target_link_libraries(OgreOverlay PRIVATE Freetype::Freetype)
-+
    if(ZLIB_FOUND)
      target_link_libraries(OgreOverlay PRIVATE ZLIB::ZLIB)
    endif()
-@@ -61,6 +61,10 @@ elseif(UNIX)
+@@ -61,6 +60,10 @@ elseif(UNIX)
    set_source_files_properties(src/OgreFont.cpp PROPERTIES
      COMPILE_FLAGS "-Wno-cast-qual -Wno-unused-function")
  endif()
@@ -349,7 +319,7 @@ index 0c74ce293..c2507a8f8 100644
  if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
    target_include_directories(OgreOverlay PUBLIC
 diff --git a/Components/Python/CMakeLists.txt b/Components/Python/CMakeLists.txt
-index 1a9828107..e8f3b8dcd 100644
+index b4682021e..709ea9e5d 100644
 --- a/Components/Python/CMakeLists.txt
 +++ b/Components/Python/CMakeLists.txt
 @@ -6,7 +6,7 @@ endif()
@@ -388,10 +358,10 @@ index ffc2622c4..ad0cbf8b5 100644
      target_link_libraries(Plugin_DotScene PUBLIC OgreTerrain)
  endif()
 diff --git a/PlugIns/FreeImageCodec/CMakeLists.txt b/PlugIns/FreeImageCodec/CMakeLists.txt
-index 1721957cd..e900e267b 100644
+index 1721957cd..6a5be7979 100644
 --- a/PlugIns/FreeImageCodec/CMakeLists.txt
 +++ b/PlugIns/FreeImageCodec/CMakeLists.txt
-@@ -13,11 +13,10 @@ set(SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/OgreFreeImageCodec.cpp")
+@@ -13,11 +13,11 @@ set(SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/OgreFreeImageCodec.cpp")
  
  add_definitions(-DFREEIMAGE_LIB)
  add_library(Codec_FreeImage ${OGRE_LIB_TYPE} ${HEADER_FILES} ${SOURCES})
@@ -402,6 +372,7 @@ index 1721957cd..e900e267b 100644
      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 -    $<INSTALL_INTERFACE:include/OGRE/Plugins/FreeImageCodec>
 -    PRIVATE "${FreeImage_INCLUDE_DIR}")
++    PRIVATE
 +    $<INSTALL_INTERFACE:include/OGRE/Plugins/FreeImageCodec>)
  
  if (MINGW)
@@ -440,7 +411,7 @@ index 49665ad0d..8ec604ed8 100644
  
  ogre_config_framework(Plugin_GLSLangProgramManager)
 diff --git a/RenderSystems/Tiny/CMakeLists.txt b/RenderSystems/Tiny/CMakeLists.txt
-index b91d50a95..64726da90 100644
+index b91d50a95..da5c68a0e 100644
 --- a/RenderSystems/Tiny/CMakeLists.txt
 +++ b/RenderSystems/Tiny/CMakeLists.txt
 @@ -20,8 +20,18 @@ target_include_directories(RenderSystem_Tiny PUBLIC
@@ -448,7 +419,7 @@ index b91d50a95..64726da90 100644
  
  find_package(OpenMP QUIET)
 +if(MSVC)
-+  find_package(OpenMP QUIET)
++    find_package(OpenMP QUIET)
 +else()
 +  find_package(llvm-openmp MODULE)
 +  set(OpenMP_CXX_FOUND 1)
@@ -478,7 +449,7 @@ index 630e6dae0..757d14e59 100755
      set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/src/volk.c"
          PROPERTIES COMPILE_DEFINITIONS VK_USE_PLATFORM_WIN32_KHR)
 diff --git a/Tests/CMakeLists.txt b/Tests/CMakeLists.txt
-index c0653fbcf..11da11077 100644
+index 9b72bd8b9..3498b56b0 100644
 --- a/Tests/CMakeLists.txt
 +++ b/Tests/CMakeLists.txt
 @@ -10,7 +10,7 @@

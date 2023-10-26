@@ -1,0 +1,27 @@
+From 0077b01c5b558042c984ef586cc73b7b32f9c6a2 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Thu, 26 Oct 2023 14:33:43 +0200
+Subject: [PATCH] Set rpath with
+
+---
+ CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e04c61bcc..6e94a8052 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -427,8 +427,8 @@ mark_as_advanced(
+ ###################################################################
+ include(ConfigureBuild)
+ 
+-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}")
+-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
++set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};$ORIGIN;$ORIGIN/..;$ORIGIN/../lib;$ORIGIN/../lib/OGRE;$ORIGIN/../..")
++set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+ 
+ ###################################################################
+ # disable way too common compiler warnings on project level
+-- 
+2.30.2
+

@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         conan: ["2.0"]
-        version: [13.5.0, 13.6.5]
+        version: [13.6.5, 14.1.0]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
         profile: [gcc]
