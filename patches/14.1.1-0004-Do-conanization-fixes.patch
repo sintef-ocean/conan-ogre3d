@@ -1,6 +1,6 @@
-From 823988c0df5cc52e95d19e23bec677267e0723f2 Mon Sep 17 00:00:00 2001
+From a9b53e675810ebbcfd50260b6c7fdd8a22a92313 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
-Date: Thu, 26 Oct 2023 15:08:14 +0200
+Date: Fri, 27 Oct 2023 10:05:20 +0200
 Subject: [PATCH] Do conanization fixes
 
 ---
@@ -179,13 +179,13 @@ index b3a4eee65..d0473e915 100644
  
     SET(_dlist 0)
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6e94a8052..8503a4f97 100644
+index 2dd7d6cf6..358716578 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -67,6 +67,7 @@ if (APPLE AND NOT ANDROID)
  endif ()
  
- project(OGRE VERSION 14.1.0)
+ project(OGRE VERSION 14.1.1)
 +add_compile_definitions(QT_NO_VERSION_TAGGING)
  
  # extra version info

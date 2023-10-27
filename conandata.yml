@@ -1,9 +1,9 @@
 ---
 sources:
-  14.1.0:
-    sha256: b5ff3d7def376a42cbfa35cbf0c85464f69fb2815a5fe9c85e4a261358dbcc06
+  14.1.1:
+    sha256: 394353501a3b12dda71efb39ba55f1e5b941c41c308c805536f6e2b279069c56
     url:
-      - https://github.com/OGRECave/ogre/archive/refs/tags/v14.1.0.tar.gz
+      - https://github.com/OGRECave/ogre/archive/refs/tags/v14.1.1.tar.gz
   13.6.5:
     sha256: 857f74d18c4bb484f0e31c288b8d27837615a59c3da2b3d8304496c83ef669cd
     url:
@@ -14,7 +14,7 @@ sources:
       - https://github.com/OGRECave/ogre/archive/refs/tags/v13.5.0.tar.gz
 
 dependencies:
-  14.1.0:
+  14.1.1:
     assimp: 5.2.2
     bullet3: 3.25
     egl: system
@@ -89,11 +89,11 @@ dependencies:
 
 
 patches:
-  14.1.0:
-    - patch_file: patches/14.1.0-0001-Set-rpath-with-origin-variants.patch
-    - patch_file: patches/14.1.0-0002-Remove-absolute-paths-from-ogre-config.patch
-    - patch_file: patches/14.1.0-0003-Fix-conanized-zip-linking-issue.patch
-    - patch_file: patches/14.1.0-0004-Do-conanization-fixes.patch
+  14.1.1:
+    - patch_file: patches/14.1.1-0001-Set-rpath-with-origin-variants.patch
+    - patch_file: patches/14.1.1-0002-Remove-absolute-paths-from-ogre-config.patch
+    - patch_file: patches/14.1.1-0003-Fix-conanized-zip-linking-issue.patch
+    - patch_file: patches/14.1.1-0004-Do-conanization-fixes.patch
   13.6.5:
     - patch_file: patches/13.6.5-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/13.6.5-0002-Remove-absolute-paths-from-ogre-config.patch
