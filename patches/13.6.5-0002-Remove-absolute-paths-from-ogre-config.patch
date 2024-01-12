@@ -1,16 +1,16 @@
-From 26d2af70abf4c37430bb24d075689320af5f1ac6 Mon Sep 17 00:00:00 2001
+From 69855980b1958d62efed920b3d5ada17840acaa1 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
-Date: Tue, 7 Jun 2022 17:18:54 +0200
-Subject: [PATCH 4/5] Remove absolute paths from ogre config paths header
+Date: Tue, 11 Apr 2023 15:43:14 +0200
+Subject: [PATCH 2/4] Remove absolute paths from ogre config
 
 ---
- CMake/InstallResources.cmake                 | 7 ++++---
+ CMake/InstallResources.cmake                 | 9 +++++----
  CMake/Templates/OgreConfigPaths.h.in         | 6 +++---
  Components/Bites/src/OgreGLXConfigDialog.cpp | 2 +-
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
 diff --git a/CMake/InstallResources.cmake b/CMake/InstallResources.cmake
-index cfe7db3ce..76ece6a4b 100644
+index 09789ce4d..533af7366 100644
 --- a/CMake/InstallResources.cmake
 +++ b/CMake/InstallResources.cmake
 @@ -33,10 +33,11 @@ endif()
@@ -26,7 +26,13 @@ index cfe7db3ce..76ece6a4b 100644
    endif()
  else ()
    set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_PLUGINS_PATH}")
-@@ -63,8 +64,8 @@ elseif (APPLE)
+@@ -57,14 +58,14 @@ elseif (APPLE)
+   if(APPLE_IOS)
+     set(OGRE_TEST_MEDIA_DIR_REL "../../Tests/${OGRE_MEDIA_PATH}")
+   else()
+     set(OGRE_TEST_MEDIA_DIR_REL "${CMAKE_INSTALL_PREFIX}/Tests/Media")
+   endif()
+   # these are resolved relative to the app bundle
    set(OGRE_SAMPLES_DIR_REL "Contents/Plugins/")
    set(OGRE_CFG_INSTALL_PATH "bin")
  elseif (UNIX)

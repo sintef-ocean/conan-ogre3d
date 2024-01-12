@@ -1,7 +1,7 @@
-From 9d1eb243f3a534437c062f991fc0e2706c3f5541 Mon Sep 17 00:00:00 2001
+From 68ea6cd214219eb803d087c95739e301288ba743 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
-Date: Tue, 7 Jun 2022 17:09:35 +0200
-Subject: [PATCH 2/5] Fiz zip linking issue for conanized
+Date: Tue, 11 Apr 2023 15:54:18 +0200
+Subject: [PATCH 3/4] Fix conanized zip linking issue
 
 ---
  OgreMain/CMakeLists.txt      |    1 -
@@ -10,8 +10,8 @@ Subject: [PATCH 2/5] Fiz zip linking issue for conanized
  OgreMain/src/zip/Ogre_zip.h  |  443 ++
  OgreMain/src/zip/Ogreminiz.h | 9959 ++++++++++++++++++++++++++++++++++
  OgreMain/src/zip/miniz.h     | 9959 ----------------------------------
+ OgreMain/src/zip/zip.c       |    4 +-
  OgreMain/src/zip/zip.h       |  443 --
- OgreMain/src/zip/zip.c       |    4 ++--
  8 files changed, 10406 insertions(+), 10407 deletions(-)
  create mode 100644 OgreMain/src/zip/Ogre_zip.h
  create mode 100644 OgreMain/src/zip/Ogreminiz.h
@@ -44,7 +44,7 @@ index b975c753b..8c6b61c3f 100644
  namespace Ogre
  {
 diff --git a/OgreMain/src/OgreZip.cpp b/OgreMain/src/OgreZip.cpp
-index ef4ea847f..4864c4945 100644
+index 195e2a0ad..e81565a8f 100644
 --- a/OgreMain/src/OgreZip.cpp
 +++ b/OgreMain/src/OgreZip.cpp
 @@ -28,7 +28,7 @@ THE SOFTWARE.
@@ -20437,6 +20437,21 @@ index 88a5ae8f8..000000000
 -#endif /*#ifndef MINIZ_NO_ARCHIVE_APIS*/
 -#endif // MINIZ_HEADER_FILE_ONLY
 \ No newline at end of file
+diff --git a/OgreMain/src/zip/zip.c b/OgreMain/src/zip/zip.c
+index 0b213d631..2f6dc9b59 100644
+--- a/OgreMain/src/zip/zip.c
++++ b/OgreMain/src/zip/zip.c
+@@ -36,8 +36,8 @@
+ #include <unistd.h>
+ #endif
+ 
+-#include "miniz.h"
+-#include "zip.h"
++#include "zip/Ogreminiz.h"
++#include "zip/Ogre_zip.h"
+ 
+ #ifdef _MSC_VER
+ #include <io.h>
 diff --git a/OgreMain/src/zip/zip.h b/OgreMain/src/zip/zip.h
 deleted file mode 100644
 index dbcbc0441..000000000
@@ -20886,21 +20901,6 @@ index dbcbc0441..000000000
 -#endif
 -
 -#endif
-diff --git a/OgreMain/src/zip/zip.c b/OgreMain/src/zip/zip.c
-index 0b213d631..2f6dc9b59 100644
---- a/OgreMain/src/zip/zip.c
-+++ b/OgreMain/src/zip/zip.c
-@@ -36,8 +36,8 @@
- #include <unistd.h>
- #endif
- 
--#include "miniz.h"
--#include "zip.h"
-+#include "zip/Ogreminiz.h"
-+#include "zip/Ogre_zip.h"
- 
- #ifdef _MSC_VER
- #include <io.h>
 -- 
 2.30.2
 

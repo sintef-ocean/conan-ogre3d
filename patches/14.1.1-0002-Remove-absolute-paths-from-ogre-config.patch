@@ -1,8 +1,7 @@
-From 35c506e6f686e1bf523315c5af5c14b85bd14deb Mon Sep 17 00:00:00 2001
-From: Joakim Haugen <joakim.haugen@gmail.com>
-Date: Thu, 12 May 2022 09:49:53 +0200
-Subject: [PATCH 6/6] Remove absolute paths from ogre config paths header,
- inclomplete
+From fc0a1e92c926f86bd8c3f4e5edd9ad36a81f47ba Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Thu, 26 Oct 2023 14:42:13 +0200
+Subject: [PATCH 1/2] Remove absolute paths from ogre config
 
 ---
  CMake/InstallResources.cmake                 | 8 ++++----
@@ -11,7 +10,7 @@ Subject: [PATCH 6/6] Remove absolute paths from ogre config paths header,
  3 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/CMake/InstallResources.cmake b/CMake/InstallResources.cmake
-index cfe7db3ce..8ba96bb49 100644
+index ad531b3cf..cc1285528 100644
 --- a/CMake/InstallResources.cmake
 +++ b/CMake/InstallResources.cmake
 @@ -33,10 +33,10 @@ endif()
@@ -39,7 +38,7 @@ index cfe7db3ce..8ba96bb49 100644
  
  # generate OgreConfigPaths.h
 diff --git a/CMake/Templates/OgreConfigPaths.h.in b/CMake/Templates/OgreConfigPaths.h.in
-index d51aab547..f8e058df2 100644
+index d51aab547..e139f5922 100644
 --- a/CMake/Templates/OgreConfigPaths.h.in
 +++ b/CMake/Templates/OgreConfigPaths.h.in
 @@ -1,8 +1,8 @@
@@ -50,12 +49,12 @@ index d51aab547..f8e058df2 100644
 -#define OGRE_MEDIA_DIR "@CMAKE_INSTALL_PREFIX@/@OGRE_MEDIA_PATH@"
 -#define OGRE_PLUGIN_DIR "@OGRE_PLUGIN_DIR_REL@" 
 +#define OGRE_CONFIG_DIR "@OGRE_CFG_INSTALL_PATH@"
-+#define OGRE_MEDIA_DIR "@OGRE_MEDIA_DIR_REL@"
++#define OGRE_MEDIA_DIR "@OGRE_MEDIA_PATH_REL@"
 +#define OGRE_PLUGIN_DIR "@OGRE_PLUGIN_DIR_REL@"
  
  #endif /* OGRECONFIGPATHS_H_ */
 diff --git a/Components/Bites/src/OgreGLXConfigDialog.cpp b/Components/Bites/src/OgreGLXConfigDialog.cpp
-index 9ce1157e3..060c95bcc 100644
+index 9ce1157e3..7fea892cc 100644
 --- a/Components/Bites/src/OgreGLXConfigDialog.cpp
 +++ b/Components/Bites/src/OgreGLXConfigDialog.cpp
 @@ -337,7 +337,7 @@ Pixmap GLXConfigurator::CreateBackdrop(Window rootWindow, int depth) {
@@ -63,10 +62,10 @@ index 9ce1157e3..060c95bcc 100644
  
          // Load backdrop image using OGRE
 -        String path = FileSystemLayer::resolveBundlePath(OGRE_MEDIA_DIR "/../GLX_backdrop.png");
-+        String path = FileSystemLayer::resolveBundlePath("../" OGRE_CONFIG_DIR "/GLX_backdrop.png");
++        String path = FileSystemLayer::resolveBundlePath("../" OGRE_MEDIA_DIR "/GLX_backdrop.png");
          DataStreamPtr imgStreamPtr = Root::openFileStream(path);
          img.load(imgStreamPtr, "png");
  
 -- 
-2.25.1
+2.30.2
 

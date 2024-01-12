@@ -1,17 +1,17 @@
-From 237752c6192d2ae23149f84c5bf4cb260b44ed86 Mon Sep 17 00:00:00 2001
+From 0077b01c5b558042c984ef586cc73b7b32f9c6a2 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
-Date: Tue, 7 Jun 2022 17:20:24 +0200
-Subject: [PATCH 5/5] Set rpath with origin variants
+Date: Thu, 26 Oct 2023 14:33:43 +0200
+Subject: [PATCH] Set rpath with
 
 ---
  CMakeLists.txt | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3a51f643c..f4e0341e0 100644
+index e04c61bcc..6e94a8052 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -443,8 +443,8 @@ mark_as_advanced(
+@@ -427,8 +427,8 @@ mark_as_advanced(
  ###################################################################
  include(ConfigureBuild)
  

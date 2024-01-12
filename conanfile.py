@@ -1,24 +1,34 @@
-from conans import ConanFile, CMake, tools, errors
+from os import path
+from shutil import which
+
+from conan import ConanFile
+from conan.tools.scm import Version
+from conan.tools.files import get, copy, rmdir
+from conan.tools.files import apply_conandata_patches, export_conandata_patches
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
+from conan.errors import ConanInvalidConfiguration
+from conan.tools.microsoft.visual import check_min_vs, is_msvc
+from conan.tools.build import check_min_cppstd
+from conan.tools.build import can_run
+from conan.tools.system.package_manager import Apt
+
+required_conan_version = ">=1.54"
 
 
 class Ogre3dConan(ConanFile):
     name = "ogre3d"
     license = "MIT"
-    #version = "13.5.0"  # uncomment to "enable package development flow"
     author = "SINTEF Ocean"
     url = "https://github.com/sintef-ocean/conan-ogre3d"
     description = "3D graphics rendering engine"
     topics = ("graphics", "3D rendering", "3D", "ogre3d")
     settings = "os", "compiler", "build_type", "arch"
-    exports_sources = ['patches/*']
-    generators = ("cmake", "cmake_find_package")
-    _cmake = None
+    package_type = "shared-library"
 
     options = {
         "with_freetype": [True, False],
         "with_sdl": [True, False],
-        "with_qt5": [True, False],
-        "with_qt6": [True, False],
+        "with_qt": [False, "5", "6"],
         "install_samples": [True, False],
         "install_tools": [True, False],
         "bindings_csharp": [True, False],
@@ -42,6 +52,7 @@ class Ogre3dConan(ConanFile):
         "plugin_particlefx": [True, False],
         "plugin_pcz": [True, False],
         "plugin_stbi": [True, False],
+        "plugin_rsimage": [True, False],
         "component_bites": [True, False],
         "component_bullet": [True, False],
         "component_meshlodgenerator": [True, False],
@@ -64,14 +75,12 @@ class Ogre3dConan(ConanFile):
         "enable_quad_buffer_stereo": [True, False],
         "enable_viewport_orientationmode": [True, False],
         "enable_zip": [True, False],
-        "build_tests": [True, False],
         }
 
     default_options = {
         "with_freetype": False,
         "with_sdl": True,
-        "with_qt5": False,
-        "with_qt6": False,
+        "with_qt": False,
         "install_samples": False,
         "install_tools": True,
         "bindings_csharp": False,
@@ -84,7 +93,7 @@ class Ogre3dConan(ConanFile):
         "rendersystem_opengl3": True,
         "rendersystem_opengles": False,
         "rendersystem_tiny": False,
-        "rendersystem_vulkan": True,
+        "rendersystem_vulkan": False,
         "plugin_assimp": True,
         "plugin_bsp": True,
         "plugin_dotscene": True,
@@ -95,6 +104,7 @@ class Ogre3dConan(ConanFile):
         "plugin_particlefx": True,
         "plugin_pcz": True,
         "plugin_stbi": True,
+        "plugin_rsimage": False,
         "component_bites": True,
         "component_bullet": True,
         "component_meshlodgenerator": True,
@@ -117,251 +127,347 @@ class Ogre3dConan(ConanFile):
         "enable_quad_buffer_stereo": False,
         "enable_viewport_orientationmode": False,
         "enable_zip": True,
-        "build_tests": False,
         }
 
-    def requirements(self):
-        deps = self.conan_data["dependencies"][self.version]
-        if self.options.install_tools:
-            self.requires(f"pugixml/{deps['pugixml']}")
-        if self.options.with_sdl:
-            self.requires(f"sdl/{deps['sdl']}", private=True)
-        if self.options.with_qt5 or self.options.get_safe("with_qt6", False):
-            self.output.warn("Qt dependency handling may not work")
-            if self.options.with_qt5:
-                self.requires(f"qt/{deps['qt5']}", private=True)
-            else:
-                self.requires(f"qt/{deps['qt6']}", private=False)
-        if self.options.rendersystem_opengl:
-            self.requires(f"opengl/{deps['opengl']}")
-            if self.settings.os != "Windows":
-                self.requires(f"egl/{deps['egl']}")
-        if self.options.rendersystem_opengl3:
-            self.requires(f"opengl/{deps['opengl']}")
-            if self.settings.os != "Windows":
-                self.requires(f"egl/{deps['egl']}")
-        if self.options.rendersystem_opengles:
-            self.output.warn("OpenGL ES requirement not handled by conan")
-            # debian: libgles2-mesa-dev
-            if self.settings.os != "Windows":
-                self.requires(f"egl/{deps['egl']}")
-        if self.options.rendersystem_tiny and self.settings.os != "Windows":
-            self.requires(f"llvm-openmp/{deps['llvm-openmp']}", private=True)
-        if self.options.rendersystem_vulkan:
-            vulkan_override = self.options.with_qt5 or self.options.get_safe("with_qt6", False)
-            self.requires(f"vulkan-loader/{deps['vulkan-loader']}", override=vulkan_override)
-
-        if self.options.plugin_assimp:
-            self.requires(f"assimp/{deps['assimp']}", private=False)
-        if self.options.plugin_exrcodec:
-            self.requires(f"openexr/{deps['openexr']}", private=False)
-            # Note: "openexr must be < 3"
-        if self.options.plugin_freeimage:
-            self.requires(f"freeimage/{deps['freeimage']}", private=False)
-        if self.options.with_freetype:
-            self.requires(f"freetype/{deps['freetype']}", private=True)
-        if self.options.plugin_glslang:
-            self.requires(f"glslang/{deps['glslang']}", private=False)
-
-        if self.options.get_safe("component_bullet", False):
-            self.requires(f"bullet3/{deps['bullet3']}", private=False)
-
-        if self.options.plugin_dotscene:
-            self.requires(f"pugixml/{deps['pugixml']}")
-
-        if self.settings.os == "Linux":
-            self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
-
-        # with_sdl a conflict arises for zlib..
-        if self.options.with_sdl or self.options.plugin_assimp \
-           or self.options.plugin_freeimage or self.options.plugin_exrcodec:
-            self.requires(f"zlib/{deps['zlib']}", override=True)
-
-        if self.options.with_qt5 or self.options.get_safe("with_qt6", False):
-            self.requires(f"openssl/{deps['openssl']}", override=True)
-            if self.settings.os == "Linux":
-                self.requires(f"xkbcommon/{deps['xkbcommon']}", override=True)
-
-        if self.options.plugin_freeimage:
-
-            if self.options.with_qt5 or self.options.get_safe("with_qt6", False):
-                self.requires(f"libjpeg/{deps['libjpeg']}", override=True)
-
-            if self.options.with_freetype:
-                self.requires(f"libpng/{deps['libpng']}", override=True)
-
-    def build_requirements(self):
-        deps = self.conan_data["dependencies"][self.version]
-        if self.options.bindings_csharp or self.options.bindings_java \
-           or self.options.bindings_python:
-            self.tool_requires(f"swig/{deps['swig']}")
-
-        if self.options.build_tests:
-            self.tool_requires(f"gtest/{deps['gtest']}")
+    # the minimum compiler in case of cppstd 17
+    @property
+    def _compilers_minimum_version(self):
+        return {
+            "gcc": "7",
+            "clang": "7",
+            "apple-clang": "10",
+        }
 
     @property
-    def _source_subfolder(self):
-        return "source_subfolder"
+    def _build_testing(self):
+        # This seems to be the minimal configuration for successfully running tests
+        # install_samples for functional resources.cfg since 13.6.
+        return (not self.conf.get("tools.build:skip_test",
+                                  default=True, check_type=bool)) and \
+               self.options.plugin_stbi and \
+               self.options.component_bites and \
+               self.options.component_overlay and \
+               self.options.component_rtshadersystem and \
+               self.options.component_meshlodgenerator and \
+               self.options.component_volume and \
+               self.options.install_samples
 
-    def source(self):
-        tools.get(**self.conan_data["sources"][self.version],
-                  destination=self._source_subfolder, strip_root=True)
+    @property
+    def _need_swig(self):
+        return self.options.bindings_csharp \
+            or self.options.bindings_java \
+            or self.options.bindings_python
 
-        for patch in self.conan_data.get("patches", {}).get(self.version, []):
-            tools.patch(**patch)
+    def _cargo_new_enough(self, required_version):
+        try:
+            if not which("cargo"):
+                return False
+            import re
+            from io import StringIO
+            output = StringIO()
+            self.run("cargo --version", output)
+            m = re.search(r"cargo (\d+\.\d+\.\d+)", output.getvalue())
+            return Version(m.group(1)) >= required_version
+        except:
+            return False
+
+    def _cmake_new_enough(self, required_version):
+        try:
+            import re
+            from io import StringIO
+            output = StringIO()
+            self.run("cmake --version", output)
+            m = re.search(r"cmake version (\d+\.\d+\.\d+)", output.getvalue())
+            return Version(m.group(1)) >= required_version
+        except:
+            return False
+
+    def export_sources(self):
+        export_conandata_patches(self)
 
     def config_options(self):
         if self.settings.os != "Windows":
             del self.options.rendersystem_direct3d9
             del self.options.rendersystem_direct3d11
-        if tools.Version(self.version) < "13.4.0":
+        if Version(self.version) < "13.4.0":
             del self.options.component_bullet
-        if tools.Version(self.version) < "13.5.0":
-            del self.options.with_qt6
+
+        if Version(self.version) < "13.6.4":
+            del self.options.plugin_rsimage
 
     def configure(self):
-        self.options["freetype"].shared = False
-        self.options["assimp"].shared = False
-        self.options["pugixml"].shared = False
-        self.options["openexr"].shared = False
-        self.options["glslang"].shared = False
-        self.options["bullet3"].shared = False
+        self.options["freetype/*"].shared = False
+        self.options["assimp/*"].shared = False
+        self.options["pugixml/*"].shared = False
+        self.options["openexr/*"].shared = False
+        self.options["glslang/*"].shared = False
+        self.options["bullet3/*"].shared = False
         if self.settings.os != "Windows":
-            self.options["llvm-openmp"].shared = False
-            self.options["llvm-openmp"].fPIC = True
+            self.options["llvm-openmp/*"].shared = False
+            self.options["llvm-openmp/*"].fPIC = True
 
-        if self.options.with_qt5 and self.options.get_safe("with_qt6", False):
-            raise errors.ConanInvalidConfiguration("'with_qt5' and 'with_qt6' are mutually exclusive. Set only one to True")
-
-        if self.options.get_safe("with_qt6", False):
-            self.output.warn("Qt6 required to be shared for now")
-            self.options["qt"].shared = True
+        if self.options.with_qt in ["5", "6"]:
+            self.output.warn("Qt required to be shared for now")
+            self.options["qt/*"].shared = True
 
         if self.options.rendersystem_vulkan:
-            self.options["qt"].with_vulkan = True
+            self.options["qt/*"].with_vulkan = True
 
-        if self.options.install_samples:
-            if not self.options.with_qt5 and not self.options.with_sdl \
-               and not self.options.get_safe("with_qt6", False):
-                self.output.info("Samples requires with_qt5, with_qt6 or with_sdl, selecting with_sdl=True")
-                self.options.with_sdl = True
+    def layout(self):
+        cmake_layout(self, src_folder="src")
 
-        if self.options.get_safe("with_qt6", False):
-            if self.settings.compiler.cppstd in [None, "14"]:
-                raise errors.ConanInvalidConfiguration("C++ standard less than 17 not supported with_qt6, specify --settings ogre3d:compiler.cppstd=17")
+    def requirements(self):
+        deps = self.conan_data["dependencies"][self.version]
+        if self.options.install_tools or self.options.plugin_dotscene:
+            self.requires(f"pugixml/{deps['pugixml']}")
+        if self.options.with_sdl:
+            self.requires(f"sdl/{deps['sdl']}")  # private=True
+        if self.options.with_qt in ["5", "6"]:
+            self.output.warn("Qt dependency handling may not work")
+            if self.options.with_qt == "5":
+                self.requires(f"qt/{deps['qt5']}")  # private=False
+            else:
+                self.requires(f"qt/{deps['qt6']}")  # private=False
+        if self.options.rendersystem_opengl or \
+           self.options.rendersystem_opengl3:
+            self.requires(f"opengl/{deps['opengl']}")
+        if (self.options.rendersystem_opengl or
+           self.options.rendersystem_opengl3 or
+           self.options.rendersystem_opengles) and \
+           self.settings.os != "Windows":
+            self.requires(f"egl/{deps['egl']}")
+        if self.options.rendersystem_opengles:
+            self.output.warning("OpenGL ES requirement not handled by conan")
+        if self.options.rendersystem_tiny and self.settings.os != "Windows":
+            self.requires(f"llvm-openmp/{deps['llvm-openmp']}")  # private=True
+        if self.options.rendersystem_vulkan:
+            self.requires(f"vulkan-loader/{deps['vulkan-loader']}")
 
-    def _configure_cmake(self):
-        if not self._cmake:
-            self._cmake = CMake(self)
-            defs = dict()
+        if self.options.plugin_assimp:
+            self.requires(f"assimp/{deps['assimp']}")  # private=False
+        if self.options.plugin_exrcodec:
+            self.requires(f"openexr/{deps['openexr']}")  # private=False
+            # Note: "openexr must be < 3"
+        if self.options.plugin_freeimage:
+            self.requires(f"freeimage/{deps['freeimage']}")  # private=False
+        if self.options.with_freetype:
+            self.requires(f"freetype/{deps['freetype']}")  # private=True
+        if self.options.plugin_glslang:
+            self.requires(f"glslang/{deps['glslang']}")  # private=False
+            self.requires(f"spirv-tools/[>=2021.4]")
 
-            defs['CMAKE_POSITION_INDEPENDENT_CODE'] = True
-            defs["OGRE_BUILD_DEPENDENCIES"] = False  # Use conan libs instead
-            defs["OGRE_COPY_DEPENDENCIES"] = False
-            defs["OGRE_INSTALL_DEPENDENCIES"] = False
-            defs["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # Subject to change
-            defs["OGRE_WITH_FREETYPE"] = self.options.with_freetype
-            defs["OGRE_WITH_SDL"] = self.options.with_sdl
-            defs["OGRE_WITH_QT"] = \
-                self.options.with_qt5 or self.options.get_safe("with_qt6", False)
-            if self.options.with_qt5 or self.options.get_safe("with_qt6", False):
-                qt_version = "5"
-                if self.options.get_safe("with_qt6", False):
-                    qt_version = "6"
-                defs["QT_VERSION_MAJOR"] = qt_version
+        if self.options.get_safe("component_bullet", False):
+            self.requires(f"bullet3/{deps['bullet3']}")  # private=False
 
-            renderers = "OGRE_BUILD_RENDERSYSTEM"
-            if self.settings.os == "Windows":
-                defs[f"{renderers}_D3D9"] = self.options.rendersystem_direct3d9
-                defs[f"{renderers}_D3D11"] = self.options.rendersystem_direct3d11
-            defs[f"{renderers}_GL"] = self.options.rendersystem_opengl
-            defs[f"{renderers}_GL3PLUS"] = self.options.rendersystem_opengl3
-            defs[f"{renderers}_GLES2"] = self.options.rendersystem_opengles
-            defs[f"{renderers}_TINY"] = self.options.rendersystem_tiny
-            defs[f"{renderers}_VULKAN"] = self.options.rendersystem_vulkan
-            defs[f"{renderers}_METAL"] = self.options.rendersystem_metal
+        if self.settings.os == "Linux":
+            self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
 
-            plugins = "OGRE_BUILD_PLUGIN"
-            defs[f"{plugins}_CG"] = False
-            defs[f"{plugins}_ASSIMP"] = self.options.plugin_assimp
-            defs[f"{plugins}_BSP"] = self.options.plugin_bsp
-            defs[f"{plugins}_DOT_SCENE"] = self.options.plugin_dotscene
-            defs[f"{plugins}_EXRCODEC"] = self.options.plugin_exrcodec
-            defs[f"{plugins}_FREEIMAGE"] = self.options.plugin_freeimage
-            defs[f"{plugins}_GLSLANG"] = self.options.plugin_glslang
-            defs[f"{plugins}_OCTREE"] = self.options.plugin_octree
-            defs[f"{plugins}_PCZ"] = self.options.plugin_pcz
-            defs[f"{plugins}_PFX"] = self.options.plugin_particlefx
-            defs[f"{plugins}_STBI"] = self.options.plugin_stbi
+        if self.options.with_sdl or self.options.plugin_assimp or \
+           self.options.plugin_exrcodec or \
+           self.options.plugin_stbi or self.options.plugin_freeimage:
+            do_override = not (self.options.plugin_stbi or self.options.plugin_freeimage)
+            self.requires(f"zlib/{deps['zlib']}", override=do_override)
 
-            comp = "OGRE_BUILD_COMPONENT"
-            defs[f"{comp}_CSHARP"] = self.options.bindings_csharp
-            defs[f"{comp}_JAVA"] = self.options.bindings_java
-            defs[f"{comp}_PYTHON"] = self.options.bindings_python
-            defs[f"{comp}_BITES"] = self.options.component_bites
-            defs[f"{comp}_MESHLODGENERATOR"] = self.options.component_meshlodgenerator
-            defs[f"{comp}_OVERLAY"] = self.options.component_overlay
-            defs[f"{comp}_OVERLAY_IMGUI"] = self.options.component_overlay_imgui
-            defs[f"{comp}_PAGING"] = self.options.component_paging
-            defs[f"{comp}_PROPERTY"] = self.options.component_property
-            defs[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem
-            defs[f"{comp}_TERRAIN"] = self.options.component_terrain
-            defs[f"{comp}_VOLUME"] = self.options.component_volume
-            if tools.Version(self.version) >= "13.4.0":
-                defs[f"{comp}_BULLET"] = self.options.component_bullet
+        if self.options.with_qt in ["5", "6"]:
+            self.requires(f"openssl/{deps['openssl']}", override=True)
+        if self.settings.os == "Linux":
+            self.requires(f"xkbcommon/{deps['xkbcommon']}", override=True)
 
-            defs["OGRE_BUILD_RTSHADERSYSTEM_SHADERS"] = \
-                self.options.component_rtshadersystem
+        if self.options.plugin_freeimage:
 
-            defs["OGRE_BUILD_SAMPLES"] = self.options.install_samples
-            defs["OGRE_INSTALL_SAMPLES"] = self.options.install_samples
-            defs["OGRE_BUILD_TOOLS"] = self.options.install_tools
-            defs["OGRE_INSTALL_TOOLS"] = self.options.install_tools
+            if self.options.with_qt in ["5", "6"]:
+                self.requires(f"libjpeg/{deps['libjpeg']}", override=True)
 
-            defs["OGRE_CONFIG_DOUBLE"] = self.options.enable_double
-            defs["OGRE_CONFIG_NODE_INHERIT_TRANSFORM"] = \
-                self.options.enable_node_inherit_transform
+            if self.options.with_freetype:
+                self.requires(f"libpng/{deps['libpng']}", override=True)
 
-            config = "OGRE_CONFIG_ENABLE"
-            defs[f"{config}_ASTC"] = self.options.enable_astc
-            defs[f"{config}_DDS"] = self.options.enable_dds
-            defs[f"{config}_ETC"] = self.options.enable_etc
-            defs[f"{config}_GL_STATE_CACHE_SUPPORT"] = \
-                self.options.enable_gl_state_cache_support
-            defs[f"{config}_GLES2_GLSL_OPTIMISER"] = \
-                self.options.enable_gles2_glsl_optimiser
-            defs[f"{config}_MESHLOD"] = self.options.enable_meshlod
-            defs[f"{config}_PVRTC"] = self.options.enable_pvrtc
-            defs[f"{config}_QUAD_BUFFER_STEREO"] = \
-                self.options.enable_quad_buffer_stereo
-            defs[f"{config}_VIEWPORT_ORIENTATIONMODE"] = \
-                self.options.enable_viewport_orientationmode
-            defs[f"{config}_ZIP"] = self.options.enable_zip
+    def validate(self):
 
-            defs["OGRE_BUILD_TESTS"] = self.options.build_tests
+        if self.options.get_safe("plugin_rsimage", False) \
+           and not self._cargo_new_enough("1.56.0"):
+            raise ConanInvalidConfiguration(
+                "'plugin_rsimage' needs Rust/Cargo, but was not found or too old; >=1.56.0")
 
-            self._cmake.definitions.update(defs)
-            self._cmake.configure(source_folder=self._source_subfolder)
-        return self._cmake
+        if self.settings.os not in ["Windows", "Linux"]:
+            # TODO: support macos, emscripten, android, apple_ios
+            raise ConanInvalidConfiguration(
+                f"Recipe not yet supported for '{self.settings.os}'")
+
+        if Version(self.version) < "13.5.0" and self.options.with_qt == "6":
+            raise ConanInvalidConfiguration(
+                "'with_qt' cannot be 6 for version less than 13.5.0")
+
+        if self.options.install_samples and \
+           self.options.rendersystem_vulkan and \
+           not (self.options.with_qt in ["5", "6"] or self.options.with_sdl):
+            raise ConanInvalidConfiguration(
+                "Enabling both 'install_samples' and 'rendersystem_vulkan' "
+                "require you to enable with_qt or with_sdl")
+
+        if self.options.with_qt == "6":
+            if self.settings.compiler.cppstd:
+                check_min_cppstd(self, 17)
+            check_min_vs(self, 191)
+            if not is_msvc(self):
+                minimum_version = self._compilers_minimum_version.get(str(self.settings.compiler), False)
+                if minimum_version and Version(self.settings.compiler.version) < minimum_version:
+                    raise ConanInvalidConfiguration(
+                        f"{self.ref} requires C++{self._min_cppstd}, "
+                        "which your compiler does not support."
+                    )
+
+    def build_requirements(self):
+        deps = self.conan_data["dependencies"][self.version]
+        if self._need_swig:
+            self.tool_requires(f"swig/{deps['swig']}")
+
+        if self._build_testing:
+            self.test_requires(f"gtest/{deps['gtest']}")
+
+        if not self._cmake_new_enough("3.16"):
+            self.tool_requires(f"cmake/{deps['cmake']}")
+
+        if self.options.get_safe("plugin_rsimage", False):
+            pass  # self.tool_requires(f"rustup/{deps['rustup']}")
+
+    def source(self):
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        apply_conandata_patches(self)
+
+    def generate(self):
+        tc = CMakeToolchain(self)
+
+        tc.variables['CMAKE_POSITION_INDEPENDENT_CODE'] = True
+        tc.variables["OGRE_BUILD_DEPENDENCIES"] = False  # Use conan libs instead
+        tc.variables["OGRE_COPY_DEPENDENCIES"] = False
+        tc.variables["OGRE_INSTALL_DEPENDENCIES"] = False
+        tc.variables["OGRE_INSTALL_DOCS"] = False
+        tc.variables["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # Subject to change
+        tc.variables["OGRE_WITH_FREETYPE"] = self.options.with_freetype
+        tc.variables["OGRE_WITH_SDL"] = self.options.with_sdl
+        tc.variables["OGRE_WITH_QT"] = self.options.with_qt in ["5", "6"]
+        if self.options.with_qt in ["5", "6"]:
+            tc.variables["QT_VERSION_MAJOR"] = str(self.options.with_qt)
+
+        renderers = "OGRE_BUILD_RENDERSYSTEM"
+        if self.settings.os == "Windows":
+            tc.variables[f"{renderers}_D3D9"] = self.options.rendersystem_direct3d9
+            tc.variables[f"{renderers}_D3D11"] = self.options.rendersystem_direct3d11
+        tc.variables[f"{renderers}_GL"] = self.options.rendersystem_opengl
+        tc.variables[f"{renderers}_GL3PLUS"] = self.options.rendersystem_opengl3
+        tc.variables[f"{renderers}_GLES2"] = self.options.rendersystem_opengles
+        tc.variables[f"{renderers}_TINY"] = self.options.rendersystem_tiny
+        tc.variables[f"{renderers}_VULKAN"] = self.options.rendersystem_vulkan
+        tc.variables[f"{renderers}_METAL"] = self.options.rendersystem_metal
+
+        plugins = "OGRE_BUILD_PLUGIN"
+        tc.variables[f"{plugins}_CG"] = False
+        tc.variables[f"{plugins}_ASSIMP"] = self.options.plugin_assimp
+        tc.variables[f"{plugins}_BSP"] = self.options.plugin_bsp
+        tc.variables[f"{plugins}_DOT_SCENE"] = self.options.plugin_dotscene
+        tc.variables[f"{plugins}_EXRCODEC"] = self.options.plugin_exrcodec
+        tc.variables[f"{plugins}_FREEIMAGE"] = self.options.plugin_freeimage
+        tc.variables[f"{plugins}_GLSLANG"] = self.options.plugin_glslang
+        tc.variables[f"{plugins}_OCTREE"] = self.options.plugin_octree
+        tc.variables[f"{plugins}_PCZ"] = self.options.plugin_pcz
+        tc.variables[f"{plugins}_PFX"] = self.options.plugin_particlefx
+        tc.variables[f"{plugins}_STBI"] = self.options.plugin_stbi
+        tc.variables[f"{plugins}_RSIMAGE"] = self.options.get_safe("plugin_rsimage", False)
+
+        comp = "OGRE_BUILD_COMPONENT"
+        tc.variables[f"{comp}_CSHARP"] = self.options.bindings_csharp
+        tc.variables[f"{comp}_JAVA"] = self.options.bindings_java
+        tc.variables[f"{comp}_PYTHON"] = self.options.bindings_python
+        tc.variables[f"{comp}_BITES"] = self.options.component_bites
+        tc.variables[f"{comp}_MESHLODGENERATOR"] = self.options.component_meshlodgenerator
+        tc.variables[f"{comp}_OVERLAY"] = self.options.component_overlay
+        tc.variables[f"{comp}_OVERLAY_IMGUI"] = self.options.component_overlay_imgui
+        tc.variables[f"{comp}_PAGING"] = self.options.component_paging
+        tc.variables[f"{comp}_PROPERTY"] = self.options.component_property
+        tc.variables[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem
+        tc.variables[f"{comp}_TERRAIN"] = self.options.component_terrain
+        tc.variables[f"{comp}_VOLUME"] = self.options.component_volume
+        if Version(self.version) >= "13.4.0":
+            tc.variables[f"{comp}_BULLET"] = self.options.component_bullet
+
+        tc.variables["OGRE_BUILD_RTSHADERSYSTEM_SHADERS"] = \
+            self.options.component_rtshadersystem
+
+        tc.variables["OGRE_BUILD_SAMPLES"] = self.options.install_samples
+        tc.variables["OGRE_INSTALL_SAMPLES"] = self.options.install_samples
+        tc.variables["OGRE_BUILD_TOOLS"] = self.options.install_tools
+        tc.variables["OGRE_INSTALL_TOOLS"] = self.options.install_tools
+
+        tc.variables["OGRE_CONFIG_DOUBLE"] = self.options.enable_double
+        tc.variables["OGRE_CONFIG_NODE_INHERIT_TRANSFORM"] = \
+            self.options.enable_node_inherit_transform
+
+        config = "OGRE_CONFIG_ENABLE"
+        tc.variables[f"{config}_ASTC"] = self.options.enable_astc
+        tc.variables[f"{config}_DDS"] = self.options.enable_dds
+        tc.variables[f"{config}_ETC"] = self.options.enable_etc
+        tc.variables[f"{config}_GL_STATE_CACHE_SUPPORT"] = \
+            self.options.enable_gl_state_cache_support
+        tc.variables[f"{config}_GLES2_GLSL_OPTIMISER"] = \
+            self.options.enable_gles2_glsl_optimiser
+        tc.variables[f"{config}_MESHLOD"] = self.options.enable_meshlod
+        tc.variables[f"{config}_PVRTC"] = self.options.enable_pvrtc
+        tc.variables[f"{config}_QUAD_BUFFER_STEREO"] = \
+            self.options.enable_quad_buffer_stereo
+        tc.variables[f"{config}_VIEWPORT_ORIENTATIONMODE"] = \
+            self.options.enable_viewport_orientationmode
+        tc.variables[f"{config}_ZIP"] = self.options.enable_zip
+
+        tc.variables["OGRE_BUILD_TESTS"] = self._build_testing
+        tc.generate()
+        deps = CMakeDeps(self)
+        if self._build_testing:
+            deps.build_context_activated.append("gtest")
+        if self._need_swig:
+            deps.build_context_activated.append("swig")
+        deps.generate()
+
+    def system_requirements(self):
+        if self.options.rendersystem_opengles:
+            Apt(self).install(["libgles2-mesa-dev"], check=True)
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
+        if self._build_testing and can_run(self):
+            cmake.test()
+
     def package(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.install()
-        self.copy("LICENSE*", dst="licenses", src=self._source_subfolder,
-                  ignore_case=True, keep_path=True)
+        copy(self, "LICENSE*", src=self.source_folder, dst="licenses",
+             ignore_case=True, keep_path=True)
+
+        rmdir(self, path.join(self.package_folder, "CMake"))
+        rmdir(self, path.join(self.package_folder, "lib", "OGRE", "cmake"))
+        rmdir(self, path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.names["cmake"] = 'Ogre3D'
-        self.cpp_info.names["cmake_find_package"] = 'Ogre3D'
-        self.cpp_info.names["pkg_config"] = 'Ogre3D'
 
-        self.cpp_info.components["components"].names["cmake_find_package"] = "Components"
-        self.cpp_info.components["plugins"].names["cmake_find_package"] = "Plugins"
-        self.cpp_info.components["rendersystems"].names["cmake_find_package"] = "RenderSystems"
+        self.cpp_info.set_property("cmake_file_name", "Ogre3D")
+        self.cpp_info.set_property("cmake_target_name", "Ogre3D::Ogre3D")
+        self.cpp_info.set_property("pkg_config_name", "Ogre3D")
+
+        # TODO: Map out system_libs for windows too. ws2_32?
+        if self.settings.os in ["Linux", "FreeBSD"]:
+            self.cpp_info.system_libs.append("m")
+            self.cpp_info.system_libs.append("pthread")
+            self.cpp_info.system_libs.append("dl")
+
+        # TODO: Use same component model as ogre build system (pkgconfig and cmake)
+        self.cpp_info.components["components"].set_property("cmake_file_name", "Components")
+        self.cpp_info.components["components"].set_property("cmake_target_name", "Ogre3D::Components")
+        self.cpp_info.components["plugins"].set_property("cmake_file_name", "Plugins")
+        self.cpp_info.components["plugins"].set_property("cmake_target_name", "Ogre3D::Plugins")
+        self.cpp_info.components["rendersystems"].set_property("cmake_file_name", "RenderSystems")
+        self.cpp_info.components["rendersystems"].set_property("cmake_target_name", "Ogre3D::RenderSystems")
 
         components = self.cpp_info.components
         comp = components["components"]
@@ -369,30 +475,25 @@ class Ogre3dConan(ConanFile):
         rend = components["rendersystems"]
 
         if self.options.with_freetype:
-            pass  # private:  freetype::freetype
+            comp.requires.append("freetype::freetype")
         if self.options.component_bullet:
             comp.requires.append("bullet3::bullet3")
         if self.settings.os == "Linux":
             comp.requires.append("xorg::xorg")
         if self.options.with_sdl:
-            pass  # private: sdl::sdl
-
-        if self.options.get_safe("with_qt6", False):  # private: skip if qt5
+            comp.requires.append("sdl::sdl")
+        if self.options.with_qt in ["5", "6"]:
             comp.requires.append("qt::qt")
 
-        if self.options.rendersystem_opengl:
+        if self.options.rendersystem_opengl or self.options.rendersystem_opengl3:
             rend.requires.append("opengl::opengl")
-            if self.settings.os == "Linux":
-                rend.requires.append("egl::egl")
-        if self.options.rendersystem_opengl3:
-            rend.requires.append("opengl::opengl")
-            if self.settings.os == "Linux":
-                rend.requires.append("egl::egl")
-        if self.options.rendersystem_opengles:
-            if self.settings.os == "Linux":
-                rend.requires.append("egl::egl")
+        if (self.options.rendersystem_opengl or
+            self.options.rendersystem_opengl3 or
+            self.options.rendersystem_opengles) and \
+           self.settings.os == "Linux":
+            rend.requires.append("egl::egl")
         if self.options.rendersystem_tiny and self.settings.os == "Windows":
-            pass  # private: llvm-openmpl::llvm-openmpl
+            rend.requires.append("llvm-openmpl::llvm-openmpl")
         if self.options.rendersystem_vulkan:
             rend.requires.append("vulkan-loader::vulkan-loader")
 
@@ -404,13 +505,17 @@ class Ogre3dConan(ConanFile):
             plug.requires.append("freeimage::freeimage")
         if self.options.plugin_glslang:
             plug.requires.append("glslang::glslang")
+            plug.requires.append("spirv-tools::spirv-tools")
         if self.options.plugin_assimp:
             plug.requires.append("assimp::assimp")
         if self.options.plugin_exrcodec:
             plug.requires.append("openexr::openexr")
+        if self.options.plugin_stbi or self.options.plugin_freeimage:
+            plug.requires.append("zlib::zlib")
 
         plug.requires.append("components")
 
+        comp.bindirs = ["bin"]
         comp.libdirs = ["lib"]
         comp.libs = ["OgreMain"]
 
@@ -426,7 +531,7 @@ class Ogre3dConan(ConanFile):
         if self.options.component_bites:
             comp.includedirs.append(f"{include}/Bites")
             comp.libs.append("OgreBites")
-            if self.options.with_qt5 or self.options.get_safe("with_qt6", False):
+            if self.options.with_qt in ["5", "6"]:
                 comp.libs.append("OgreBitesQt")
 
         if self.options.get_safe("component_bullet", False):
@@ -528,15 +633,16 @@ class Ogre3dConan(ConanFile):
         if self.options.plugin_stbi:
             plug.includedirs.append(f"{include_P}/STBICodec")
             plug.libs.append("Codec_STBI")
+        if self.options.get_safe("plugin_rsimage", False):
+            plug.includedirs.append(f"{include_P}/RsImageCodec")
+            plug.libs.append("Codec_RsImage")
 
-        if self.settings.compiler == "Visual Studio" \
-           and self.settings.build_type == "Debug":
+        if is_msvc(self) and self.settings.build_type == "Debug":
             comp.libs = [lib + "_d" for lib in comp.libs]
             rend.libs = [lib + "_d" for lib in rend.libs]
             plug.libs = [lib + "_d" for lib in plug.libs]
 
-        if self.settings.compiler in ["gcc", "clang"]:
+        if self.settings.compiler in ["gcc", "clang"] \
+           and self.settings.os != "Windows":
             rend.libs = [lib + ".so" for lib in rend.libs]
             plug.libs = [lib + ".so" for lib in plug.libs]
-
-        # TODO: should strip away generated pkgconfig and cmake config?
