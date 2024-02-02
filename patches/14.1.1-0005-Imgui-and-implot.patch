@@ -1,0 +1,95 @@
+From 5a025a620ad636bd336eb219cf84f88c98143403 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Mon, 25 Dec 2023 19:48:04 +0100
+Subject: [PATCH] Conan imgui src and include implot and node editor
+
+---
+ CMake/Templates/imconfig.h        |  9 +++++++--
+ Components/Overlay/CMakeLists.txt | 25 +++++++++++++++++++++++--
+ 2 files changed, 30 insertions(+), 4 deletions(-)
+
+diff --git a/CMake/Templates/imconfig.h b/CMake/Templates/imconfig.h
+index 7f6a28ce2..2665f3e8b 100644
+--- a/CMake/Templates/imconfig.h
++++ b/CMake/Templates/imconfig.h
+@@ -1,5 +1,10 @@
+ #pragma once
+-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
++//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS  // IMPLOT uses obsolete functions
+ #include <OgreOverlayPrerequisites.h>
++#define IMGUI_USER_CONFIG
+ #define IMGUI_API _OgreOverlayExport
+-#cmakedefine IMGUI_ENABLE_FREETYPE
+\ No newline at end of file
++#define IMPLOT_API _OgreOverlayExport
++#define IMGUI_NODE_EDITOR_API _OgreOverlayExport
++#cmakedefine IMGUI_ENABLE_FREETYPE
++
++//#define ImDrawIdx unsigned int
+diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
+index 0358760f1..882a66160 100644
+--- a/Components/Overlay/CMakeLists.txt
++++ b/Components/Overlay/CMakeLists.txt
+@@ -19,7 +19,7 @@ list(APPEND HEADER_FILES
+ file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+ 
+ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+-  set(IMGUI_DIR "${PROJECT_BINARY_DIR}/imgui-1.89.8" CACHE PATH "")
++  set(IMGUI_DIR "${PROJECT_BINARY_DIR}/imgui" CACHE PATH "")
+   if(NOT EXISTS ${IMGUI_DIR})
+     message(STATUS "Downloading imgui")
+     file(DOWNLOAD
+@@ -33,7 +33,15 @@ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+     ${IMGUI_DIR}/imgui_draw.cpp
+     ${IMGUI_DIR}/imgui_tables.cpp
+     ${IMGUI_DIR}/imgui_widgets.cpp
+-    ${IMGUI_DIR}/imgui_demo.cpp)
++    ${IMGUI_DIR}/imgui_demo.cpp
++    ${IMGUI_DIR}/implot.cpp
++    ${IMGUI_DIR}/implot_demo.cpp
++    ${IMGUI_DIR}/implot_items.cpp
++    ${IMGUI_DIR}/crude_json.cpp
++    ${IMGUI_DIR}/imgui_canvas.cpp
++    ${IMGUI_DIR}/imgui_node_editor.cpp
++    ${IMGUI_DIR}/imgui_node_editor_api.cpp
++    )
+   if(OGRE_WITH_FREETYPE)
+     set(IMGUI_ENABLE_FREETYPE TRUE)
+     list(APPEND SOURCE_FILES ${IMGUI_DIR}/misc/freetype/imgui_freetype.cpp)
+@@ -70,6 +78,9 @@ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+     PUBLIC "$<BUILD_INTERFACE:${IMGUI_DIR}>"
+     PRIVATE "$<BUILD_INTERFACE:${IMGUI_DIR}/misc/freetype>")
+ 
++  target_compile_definitions(OgreOverlay PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
++  target_compile_features(OgreOverlay PRIVATE cxx_std_11)
++
+   if(UNIX)
+     set_source_files_properties(${IMGUI_DIR}/misc/freetype/imgui_freetype.cpp PROPERTIES
+       COMPILE_FLAGS "-Wno-missing-declarations")
+@@ -80,6 +91,14 @@ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+       COMPILE_FLAGS "-Wno-cast-qual")
+     set_source_files_properties(${IMGUI_DIR}/imgui.cpp PROPERTIES
+       COMPILE_FLAGS "-Wno-cast-qual")
++    set_source_files_properties(${IMGUI_DIR}/implot_demo.cpp PROPERTIES
++      COMPILE_FLAGS "-Wno-missing-declarations -Wno-cast-qual")
++    set_source_files_properties(${IMGUI_DIR}/implot.cpp PROPERTIES
++      COMPILE_FLAGS "-Wno-missing-declarations -Wno-cast-qual")
++    set_source_files_properties(${IMGUI_DIR}/implot_items.cpp PROPERTIES
++      COMPILE_FLAGS "-Wno-missing-declarations")
++    set_source_files_properties(${IMGUI_DIR}/crude_json.cpp PROPERTIES
++      COMPILE_FLAGS "-Wno-shadow")
+     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+       set_property(SOURCE ${IMGUI_DIR}/misc/freetype/imgui_freetype.cpp
+         APPEND PROPERTY COMPILE_OPTIONS "-Wno-unknown-warning-option")
+@@ -94,6 +113,8 @@ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+ 
+   list(APPEND HEADER_FILES
+     ${IMGUI_DIR}/imgui.h
++    ${IMGUI_DIR}/implot.h
++    ${IMGUI_DIR}/imgui_node_editor.h
+     ${IMGUI_DIR}/imconfig.h)
+ endif()
+ 
+-- 
+2.30.2
+

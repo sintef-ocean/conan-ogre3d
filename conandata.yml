@@ -24,6 +24,9 @@ dependencies:
     gtest: 1.11.0
     llvm-openmp: 12.0.1
     cmake: "[>=3.16 <4]"
+    imgui: "1.90.1-docking"
+    implot: "0.16"
+    imgui_node_editor: "https://github.com/thedmd/imgui-node-editor/archive/refs/tags/v0.9.3.tar.gz"
     openexr: 2.5.7
     opengl: system
     openssl: "[>=1.1 <4]"
@@ -94,6 +97,7 @@ patches:
     - patch_file: patches/14.1.1-0002-Remove-absolute-paths-from-ogre-config.patch
     - patch_file: patches/14.1.1-0003-Fix-conanized-zip-linking-issue.patch
     - patch_file: patches/14.1.1-0004-Do-conanization-fixes.patch
+    - patch_file: patches/14.1.1-0005-Imgui-and-implot.patch
   13.6.5:
     - patch_file: patches/13.6.5-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/13.6.5-0002-Remove-absolute-paths-from-ogre-config.patch

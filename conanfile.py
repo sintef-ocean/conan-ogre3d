@@ -3,7 +3,7 @@ from shutil import which
 
 from conan import ConanFile
 from conan.tools.scm import Version
-from conan.tools.files import get, copy, rmdir
+from conan.tools.files import get, copy, rmdir, rm, save
 from conan.tools.files import apply_conandata_patches, export_conandata_patches
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 from conan.errors import ConanInvalidConfiguration
@@ -259,6 +259,10 @@ class Ogre3dConan(ConanFile):
         if self.options.get_safe("component_bullet", False):
             self.requires(f"bullet3/{deps['bullet3']}")  # private=False
 
+        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            self.requires(f"imgui/{deps['imgui']}", override=True)
+            self.requires(f"implot/{deps['implot']}")
+
         if self.settings.os == "Linux":
             self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
 
@@ -332,6 +336,11 @@ class Ogre3dConan(ConanFile):
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        if Version(self.version).major >= 14:
+            get(
+                self,
+                self.conan_data["dependencies"][self.version]['imgui_node_editor'],
+                strip_root=True, destination="imgui_node_editor")
         apply_conandata_patches(self)
 
     def generate(self):
@@ -427,6 +436,41 @@ class Ogre3dConan(ConanFile):
             deps.build_context_activated.append("swig")
         deps.generate()
 
+        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            # copy imgui sources, misc and headers
+            imgui_dir = path.join(self.build_folder, "imgui")
+            copy(self, "*.h", keep_path=False,
+                 src=path.join(self.source_folder, "imgui_node_editor"),
+                 dst=imgui_dir)
+            copy(self, "*.cpp", keep_path=False,
+                 src=path.join(self.source_folder, "imgui_node_editor"),
+                 dst=imgui_dir)
+            copy(self, "*.inl", keep_path=False,
+                 src=path.join(self.source_folder, "imgui_node_editor"),
+                 dst=imgui_dir)
+            for dep in self.dependencies.values():
+                if dep.ref.name == "imgui":
+                    copy(self, "*", keep_path=False,
+                         src=dep.cpp_info.includedirs[0],
+                         dst=imgui_dir)
+                    copy(self, "*", keep_path=True,
+                         src=path.join(dep.package_folder, "res", "misc", "freetype"),
+                         dst=path.join(imgui_dir, "misc", "freetype"))
+                    copy(self, "*", keep_path=True,
+                         src=path.join(dep.package_folder, "res", "src"),
+                         dst=imgui_dir)
+                    # export headers are defined in ogre's imconfig.h
+                    rm(self, "imgui_export_headers.h", imgui_dir)
+                    save(self, path.join(imgui_dir, "imgui_export_headers.h"), "#pragma once")
+                if dep.ref.name == "implot":
+                    copy(self, "*", keep_path=False,
+                         src=dep.cpp_info.includedirs[0],
+                         dst=imgui_dir)
+                    copy(self, "*", keep_path=True,
+                         src=path.join(dep.package_folder, "res", "src"),
+                         dst=imgui_dir)
+
+
     def system_requirements(self):
         if self.options.rendersystem_opengles:
             Apt(self).install(["libgles2-mesa-dev"], check=True)
@@ -484,6 +528,9 @@ class Ogre3dConan(ConanFile):
             comp.requires.append("sdl::sdl")
         if self.options.with_qt in ["5", "6"]:
             comp.requires.append("qt::qt")
+        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            #comp.requires.append("imgui::imgui")
+            comp.requires.append("implot::implot")
 
         if self.options.rendersystem_opengl or self.options.rendersystem_opengl3:
             rend.requires.append("opengl::opengl")
