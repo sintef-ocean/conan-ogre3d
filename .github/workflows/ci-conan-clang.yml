@@ -33,7 +33,7 @@ jobs:
       image: conanio/clang${{ matrix.compiler_version }}-ubuntu18.04
       options: -u 0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         run: |
           sudo apt-get update
