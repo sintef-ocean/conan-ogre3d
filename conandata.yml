@@ -27,7 +27,7 @@ dependencies:
     openexr: 2.5.7
     opengl: system
     openssl: "[>=1.1 <4]"
-    pugixml: 1.13
+    pugixml: 1.14
     qt5: "[>=5.15 <6]"
     qt6: "[>=6.1]"
     sdl: "[>=2.28.0 <2.30]"
@@ -51,7 +51,7 @@ dependencies:
     openexr: 2.5.7
     opengl: system
     openssl: "[>=1.1 <4]"
-    pugixml: 1.13
+    pugixml: 1.14
     qt5: "[>=5.15 <6]"
     qt6: "[>=6.1]"
     sdl: "[>=2.24.1 <2.30]"
@@ -75,7 +75,7 @@ dependencies:
     openexr: 2.5.7
     opengl: system
     openssl: "[>=1.1 <4]"
-    pugixml: 1.13
+    pugixml: 1.14
     qt5: "[>=5.15 <6]"
     qt6: "[>=6.1]"
     sdl: "[>=2 <2.1]"
