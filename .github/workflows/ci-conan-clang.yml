@@ -19,7 +19,7 @@ jobs:
         format('{0}@{1}/{2}', matrix.version, 'sintef', matrix.channel) ||
         format('--version {0} --user {1} --channel {2}', matrix.version, 'sintef', matrix.channel) }}
       UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
-      cppstd: "${{ matrix.compiler_version < 15 && 'gnu14' || 'gnu17' }}"
+      cppstd: "17"
     strategy:
       fail-fast: false
       matrix:
