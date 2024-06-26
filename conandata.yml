@@ -8,21 +8,16 @@ sources:
     sha256: 857f74d18c4bb484f0e31c288b8d27837615a59c3da2b3d8304496c83ef669cd
     url:
       - https://github.com/OGRECave/ogre/archive/refs/tags/v13.6.5.tar.gz
-  13.5.0:
-    sha256: 94d514d03d421c43af09e916ecd127685e15afed62e2f4cde8949b7818bc4900
-    url:
-      - https://github.com/OGRECave/ogre/archive/refs/tags/v13.5.0.tar.gz
 
 dependencies:
   14.1.1:
-    assimp: 5.2.2
+    assimp: 5.4.1
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
     freetype: 2.13.2
     glslang: 11.7.0
     gtest: 1.11.0
-    llvm-openmp: 17.0.6
     cmake: "[>=3.16 <4]"
     openexr: 2.5.9
     opengl: system
@@ -39,14 +34,13 @@ dependencies:
     libjpeg: 9e
     libpng: 1.6.43
   13.6.5:
-    assimp: 5.2.2
+    assimp: 5.4.1
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
     freetype: 2.13.2
     glslang: 11.7.0
     gtest: 1.11.0
-    llvm-openmp: 17.0.6
     cmake: "[>=3.16 <4]"
     openexr: 2.5.9
     opengl: system
@@ -62,51 +56,16 @@ dependencies:
     zlib: "[>=1.2.11 <2]"
     libjpeg: 9e
     libpng: 1.6.43
-  13.5.0:
-    assimp: 5.2.2
-    bullet3: 3.25
-    egl: system
-    freeimage: 3.18.0
-    freetype: 2.13.2
-    glslang: 11.7.0
-    gtest: 1.11.0
-    llvm-openmp: 17.0.6
-    cmake: "[>=3.16 <4]"
-    openexr: 2.5.9
-    opengl: system
-    openssl: "[>=1.1 <4]"
-    pugixml: 1.14
-    qt5: "[>=5.15 <6]"
-    qt6: "[>=6.1]"
-    sdl: "[>=2 <2.1]"
-    swig: "[>=4 <5]"
-    vulkan-loader: 1.3.268.0
-    xkbcommon: 1.6.0
-    xorg: system
-    zlib: "[>=1.2.11 <2]"
-    libjpeg: 9e
-    libpng: 1.6.43
-
 
 patches:
   14.1.1:
     - patch_file: patches/14.1.1-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/14.1.1-0002-Remove-absolute-paths-from-ogre-config.patch
-    - patch_file: patches/14.1.1-0003-Fix-conanized-zip-linking-issue.patch
+    - patch_file: patches/14.1.1-0003-Fix-zip-linking-issue.patch
     - patch_file: patches/14.1.1-0004-Do-conanization-fixes.patch
   13.6.5:
     - patch_file: patches/13.6.5-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/13.6.5-0002-Remove-absolute-paths-from-ogre-config.patch
-    - patch_file: patches/13.6.5-0003-Fix-conanized-zip-linking-issue.patch
+    - patch_file: patches/13.6.5-0003-Fix-zip-linking-issue.patch
     - patch_file: patches/13.6.5-0004-Do-conanization-fixes.patch
     - patch_file: patches/13.6.5-0005-Add-CTest-Ogre.patch
-  13.5.0:
-    - patch_file: patches/13.5.0-0001-Do-conanization-fixes.patch
-    - patch_file: patches/13.5.0-0002-Fix-zip-linking-issue-for-conanized.patch
-    - patch_file: patches/13.5.0-0003-Do-fixes-to-support-Real-as-float-and-double.patch
-    - patch_file: patches/13.5.0-0004-Remove-absolute-paths-from-ogre-config-paths-header.patch
-    - patch_file: patches/13.5.0-0005-Set-rpath-with-origin-variants.patch
-    - patch_file: patches/13.5.0-0006-Add-openmp-target-imported-only-if-undefined.patch
-    - patch_file: patches/13.5.0-0007-Various-fixes-for-conanv2.patch
-    - patch_file: patches/13.5.0-0008-Add-CTest-Ogre.patch
-    - patch_file: patches/13.5.0-0009-Do-not-use-found-freetype-if-not-requested.patch

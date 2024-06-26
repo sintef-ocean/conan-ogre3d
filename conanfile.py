@@ -189,11 +189,6 @@ class Ogre3dConan(ConanFile):
         if self.settings.os != "Windows":
             del self.options.rendersystem_direct3d9
             del self.options.rendersystem_direct3d11
-        if Version(self.version) < "13.4.0":
-            del self.options.component_bullet
-
-        if Version(self.version) < "13.6.4":
-            del self.options.plugin_rsimage
 
     def configure(self):
         self.options["freetype/*"].shared = False
@@ -202,9 +197,6 @@ class Ogre3dConan(ConanFile):
         self.options["openexr/*"].shared = False
         self.options["glslang/*"].shared = False
         self.options["bullet3/*"].shared = False
-        if self.settings.os != "Windows":
-            self.options["llvm-openmp/*"].shared = False
-            self.options["llvm-openmp/*"].fPIC = True
 
         if self.options.with_qt in ["5", "6"]:
             self.output.warn("Qt required to be shared for now")
@@ -238,8 +230,6 @@ class Ogre3dConan(ConanFile):
             self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_opengles:
             self.output.warning("OpenGL ES requirement not handled by conan")
-        if self.options.rendersystem_tiny and self.settings.os != "Windows":
-            self.requires(f"llvm-openmp/{deps['llvm-openmp']}")  # private=True
         if self.options.rendersystem_vulkan:
             self.requires(f"vulkan-loader/{deps['vulkan-loader']}")
 
@@ -292,10 +282,6 @@ class Ogre3dConan(ConanFile):
             # TODO: support macos, emscripten, android, apple_ios
             raise ConanInvalidConfiguration(
                 f"Recipe not yet supported for '{self.settings.os}'")
-
-        if Version(self.version) < "13.5.0" and self.options.with_qt == "6":
-            raise ConanInvalidConfiguration(
-                "'with_qt' cannot be 6 for version less than 13.5.0")
 
         if self.options.install_samples and \
            self.options.rendersystem_vulkan and \
@@ -387,8 +373,7 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem
         tc.variables[f"{comp}_TERRAIN"] = self.options.component_terrain
         tc.variables[f"{comp}_VOLUME"] = self.options.component_volume
-        if Version(self.version) >= "13.4.0":
-            tc.variables[f"{comp}_BULLET"] = self.options.component_bullet
+        tc.variables[f"{comp}_BULLET"] = self.options.component_bullet
 
         tc.variables["OGRE_BUILD_RTSHADERSYSTEM_SHADERS"] = \
             self.options.component_rtshadersystem
@@ -425,6 +410,8 @@ class Ogre3dConan(ConanFile):
             deps.build_context_activated.append("gtest")
         if self._need_swig:
             deps.build_context_activated.append("swig")
+
+        deps.set_property("pugixml", "cmake_target_name", "pugixml")
         deps.generate()
 
     def system_requirements(self):
@@ -492,8 +479,11 @@ class Ogre3dConan(ConanFile):
             self.options.rendersystem_opengles) and \
            self.settings.os == "Linux":
             rend.requires.append("egl::egl")
-        if self.options.rendersystem_tiny and self.settings.os == "Windows":
-            rend.requires.append("llvm-openmpl::llvm-openmpl")
+        if self.options.rendersystem_tiny and self.settings.os == "Linux":
+            if self.settings.compiler == "gcc":
+                rend.system_libs.append("gomp")
+            elif self.settings.compiler == "clang":
+                rend.system_libs.append("omp")
         if self.options.rendersystem_vulkan:
             rend.requires.append("vulkan-loader::vulkan-loader")
 

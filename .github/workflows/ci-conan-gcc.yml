@@ -14,16 +14,10 @@ jobs:
     name: Conan
     runs-on: ubuntu-22.04
     env:
-      PKG_REFERENCE: >-
-        ${{ matrix.conan == '1.0' &&
-        format('{0}@{1}/{2}', matrix.version, 'sintef', matrix.channel) ||
-        format('--version {0} --user {1} --channel {2}', matrix.version, 'sintef', matrix.channel) }}
-      UPLOAD_FLAGS: "${{ matrix.conan == '1.0' && '--all' || '' }}"
       cppstd: "17"
     strategy:
       fail-fast: false
       matrix:
-        conan: ["2.0"]
         version: [14.1.1]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
@@ -40,19 +34,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
           pip3 install --upgrade setuptools pip
-          pip3 install --upgrade conan~=${{ matrix.conan }}
+          pip3 install --upgrade conan~=2.0
       - name: Configure Conan
         run: conan remote add sintef ${{ env.CONAN_UPLOAD }}
-      - name: Get package name Conan 1
-        if: matrix.conan == '1.0'
-        run: echo "pkg_name=$(conan inspect --raw name .)" >> $GITHUB_ENV
-      - name: Get package name Conan 2
-        if: matrix.conan == '2.0'
+      - name: Get package name
         run: echo "pkg_name=$(conan inspect -f json . | jq .name -r)" >> $GITHUB_ENV
       - name: Conan create
         run: |
           git config --global --add safe.directory '*'
-          conan config install ${{ env.CONFIG_URL }}  --type git -sf conan${{ matrix.conan }}
+          conan config install ${{ env.CONFIG_URL }}  --type git -sf conan2.0
           conan config install ${{ env.CONFIG_URL }}  --type git -sf profiles -tf profiles
           conan create -s build_type=${{ matrix.build_type }} \
             -s compiler.version=${{ matrix.compiler_version }} \
@@ -61,6 +51,8 @@ jobs:
             -o ${{ env.pkg_name }}/*:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ${{ env.pkg_name }}/*:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ${{ env.pkg_name }}/*:component_bullet=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
-            -b missing -b outdated -b ${{ env.pkg_name }}* . ${{ env.PKG_REFERENCE }}
+            -b missing -b outdated -b ${{ env.pkg_name }}* \
+            --version ${{ matrix.version }} --user sintef --channel ${{ matrix.channel }} \
+            .
       - name: Conan upload
-        run: conan upload --confirm -r sintef ${{ env.pkg_name }}* --force ${{ env.UPLOAD_FLAGS }}
+        run: conan upload --confirm -r sintef ${{ env.pkg_name }}* --force

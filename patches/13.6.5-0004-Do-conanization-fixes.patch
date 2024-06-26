@@ -13,15 +13,13 @@ Subject: [PATCH 1/2] Do conanization fixes
  Components/Overlay/CMakeLists.txt     | 12 +++--
  Components/Python/CMakeLists.txt      |  2 +-
  PlugIns/Assimp/CMakeLists.txt         |  2 +-
- PlugIns/DotScene/CMakeLists.txt       |  2 +-
  PlugIns/FreeImageCodec/CMakeLists.txt |  7 ++-
  PlugIns/GLSLang/CMakeLists.txt        | 21 ++++----
- RenderSystems/Tiny/CMakeLists.txt     | 12 ++++-
  RenderSystems/Vulkan/CMakeLists.txt   |  3 +-
  Tests/CMakeLists.txt                  |  2 +-
  Tools/AssimpConverter/CMakeLists.txt  |  3 --
  Tools/XMLConverter/CMakeLists.txt     |  2 +-
- 17 files changed, 100 insertions(+), 70 deletions(-)
+ 15 files changed, 88 insertions(+), 67 deletions(-)
 
 diff --git a/CMake/Dependencies.cmake b/CMake/Dependencies.cmake
 index 4cec2898d..366db14f6 100644
@@ -374,19 +372,6 @@ index 3dc686ae3..3325902f3 100644
  
  if(OGRE_BUILD_COMPONENT_RTSHADERSYSTEM)
      target_link_libraries(Codec_Assimp PUBLIC OgreRTShaderSystem)
-diff --git a/PlugIns/DotScene/CMakeLists.txt b/PlugIns/DotScene/CMakeLists.txt
-index ffc2622c4..ad0cbf8b5 100644
---- a/PlugIns/DotScene/CMakeLists.txt
-+++ b/PlugIns/DotScene/CMakeLists.txt
-@@ -5,7 +5,7 @@ add_library(Plugin_DotScene ${OGRE_LIB_TYPE} ${HEADER_FILES} src/DotSceneLoader.
- target_include_directories(Plugin_DotScene PUBLIC
-     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-     $<INSTALL_INTERFACE:include/OGRE/Plugins/DotScene>)
--target_link_libraries(Plugin_DotScene PUBLIC OgreMain PRIVATE pugixml)
-+target_link_libraries(Plugin_DotScene PUBLIC OgreMain PRIVATE pugixml::pugixml)
- if(OGRE_BUILD_COMPONENT_TERRAIN)
-     target_link_libraries(Plugin_DotScene PUBLIC OgreTerrain)
- endif()
 diff --git a/PlugIns/FreeImageCodec/CMakeLists.txt b/PlugIns/FreeImageCodec/CMakeLists.txt
 index 1721957cd..e900e267b 100644
 --- a/PlugIns/FreeImageCodec/CMakeLists.txt
@@ -439,30 +424,6 @@ index 49665ad0d..8ec604ed8 100644
  endif()
  
  ogre_config_framework(Plugin_GLSLangProgramManager)
-diff --git a/RenderSystems/Tiny/CMakeLists.txt b/RenderSystems/Tiny/CMakeLists.txt
-index b91d50a95..64726da90 100644
---- a/RenderSystems/Tiny/CMakeLists.txt
-+++ b/RenderSystems/Tiny/CMakeLists.txt
-@@ -20,8 +20,18 @@ target_include_directories(RenderSystem_Tiny PUBLIC
-     $<INSTALL_INTERFACE:include/OGRE/RenderSystems/Tiny>)
- 
- find_package(OpenMP QUIET)
-+if(MSVC)
-+  find_package(OpenMP QUIET)
-+else()
-+  find_package(llvm-openmp MODULE)
-+  set(OpenMP_CXX_FOUND 1)
-+  if(NOT TARGET OpenMP::OpenMP_CXX)
-+    add_library(OpenMP::OpenMP_CXX INTERFACE IMPORTED)
-+  endif()
-+  target_link_libraries(OpenMP::OpenMP_CXX INTERFACE llvm-openmp::llvm-openmp)
-+endif()
- if(OpenMP_CXX_FOUND)
--    target_link_libraries(RenderSystem_Tiny PUBLIC OpenMP::OpenMP_CXX)
-+    target_link_libraries(RenderSystem_Tiny PRIVATE OpenMP::OpenMP_CXX)
- endif()
- 
- if(SDL2_FOUND)
 diff --git a/RenderSystems/Vulkan/CMakeLists.txt b/RenderSystems/Vulkan/CMakeLists.txt
 index 630e6dae0..757d14e59 100755
 --- a/RenderSystems/Vulkan/CMakeLists.txt
@@ -502,19 +463,6 @@ index 58c996f7e..16b7843c6 100644
 -set_property(TARGET OgreAssimpConverter PROPERTY
 -	INSTALL_RPATH "$ORIGIN/../${OGRE_PLUGINS_PATH}")
 \ No newline at end of file
-diff --git a/Tools/XMLConverter/CMakeLists.txt b/Tools/XMLConverter/CMakeLists.txt
-index fa5411f14..b4a39d28c 100644
---- a/Tools/XMLConverter/CMakeLists.txt
-+++ b/Tools/XMLConverter/CMakeLists.txt
-@@ -23,7 +23,7 @@ set(SOURCE_FILES
- 
- add_executable(OgreXMLConverter ${HEADER_FILES} ${SOURCE_FILES})
- target_include_directories(OgreXMLConverter PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
--target_link_libraries(OgreXMLConverter OgreMain pugixml)
-+target_link_libraries(OgreXMLConverter OgreMain pugixml::pugixml)
- 
- if (OGRE_PROJECT_FOLDERS)
- 	set_property(TARGET OgreXMLConverter PROPERTY FOLDER Tools)
 -- 
 2.30.2
 
