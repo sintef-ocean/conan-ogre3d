@@ -330,6 +330,8 @@ class Ogre3dConan(ConanFile):
         tc.variables["OGRE_INSTALL_DOCS"] = False
         tc.variables["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # Subject to change
         tc.variables["OGRE_WITH_FREETYPE"] = self.options.with_freetype
+        if self.options.with_freetype:
+            tc.cache_variables["FREETYPE_LIBRARIES"] = "Freetype::Freetype"
         tc.variables["OGRE_WITH_SDL"] = self.options.with_sdl
         tc.variables["OGRE_WITH_QT"] = self.options.with_qt in ["5", "6"]
         if self.options.with_qt in ["5", "6"]:
@@ -352,7 +354,12 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{plugins}_BSP"] = self.options.plugin_bsp
         tc.variables[f"{plugins}_DOT_SCENE"] = self.options.plugin_dotscene
         tc.variables[f"{plugins}_EXRCODEC"] = self.options.plugin_exrcodec
+        if self.options.plugin_exrcodec:
+            tc.cache_variables["OPENEXR_FOUND"] = True
+            tc.cache_variables["OPENEXR_LIBRARIES"] = "openexr::openexr"
         tc.variables[f"{plugins}_FREEIMAGE"] = self.options.plugin_freeimage
+        if self.options.plugin_freeimage:
+            tc.cache_variables["FreeImage_LIBRARIES"] = "freeimage::freeimage"
         tc.variables[f"{plugins}_GLSLANG"] = self.options.plugin_glslang
         tc.variables[f"{plugins}_OCTREE"] = self.options.plugin_octree
         tc.variables[f"{plugins}_PCZ"] = self.options.plugin_pcz
@@ -410,13 +417,16 @@ class Ogre3dConan(ConanFile):
             deps.build_context_activated.append("gtest")
         if self._need_swig:
             deps.build_context_activated.append("swig")
+            tc.cache_variables["SWIG_USE_FILE"] = "UseSwig"
 
         deps.set_property("pugixml", "cmake_target_name", "pugixml")
+        deps.set_property("freeimage", "cmake_file_name", "FreeImage")
         deps.generate()
 
     def system_requirements(self):
         if self.options.rendersystem_opengles:
             Apt(self).install(["libgles2-mesa-dev"], check=True)
+            #TODO add others package managers too
 
     def build(self):
         cmake = CMake(self)
