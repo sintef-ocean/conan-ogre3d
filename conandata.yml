@@ -11,7 +11,7 @@ sources:
 
 dependencies:
   14.1.1:
-    assimp: 5.4.1
+    assimp: 5.4.2
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
@@ -19,22 +19,23 @@ dependencies:
     glslang: 11.7.0
     gtest: 1.11.0
     cmake: "[>=3.16 <4]"
+    imgui: 1.91.0
     openexr: 2.5.9
     opengl: system
     openssl: "[>=1.1 <4]"
     pugixml: 1.14
     qt5: "[>=5.15 <6]"
     qt6: "[>=6.1]"
-    sdl: "[>=2.28.0 <2.30]"
+    sdl: "[>=2.28.0 <2.31]"
     swig: "[>=4 <5]"
-    vulkan-loader: 1.3.268.0
+    vulkan-loader: 1.3.290.0
     xkbcommon: 1.6.0
     xorg: system
     zlib: "[>=1.2.11 <2]"
     libjpeg: 9e
     libpng: 1.6.43
   13.6.5:
-    assimp: 5.4.1
+    assimp: 5.4.2
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
@@ -48,9 +49,9 @@ dependencies:
     pugixml: 1.14
     qt5: "[>=5.15 <6]"
     qt6: "[>=6.1]"
-    sdl: "[>=2.24.1 <2.30]"
+    sdl: "[>=2.24.1 <2.31]"
     swig: "[>=4 <5]"
-    vulkan-loader: 1.3.268.0
+    vulkan-loader: 1.3.290.0
     xkbcommon: 1.6.0
     xorg: system
     zlib: "[>=1.2.11 <2]"
@@ -63,6 +64,7 @@ patches:
     - patch_file: patches/14.1.1-0002-Remove-absolute-paths-from-ogre-config.patch
     - patch_file: patches/14.1.1-0003-Fix-zip-linking-issue.patch
     - patch_file: patches/14.1.1-0004-Do-conanization-fixes.patch
+    - patch_file: patches/14.1.1-0005-Use-imgui-from-conan.patch
   13.6.5:
     - patch_file: patches/13.6.5-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/13.6.5-0002-Remove-absolute-paths-from-ogre-config.patch
