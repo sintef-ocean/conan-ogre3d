@@ -54,6 +54,7 @@ jobs:
             -o ${{ env.pkg_name }}/*:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ${{ env.pkg_name }}/*:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -o ${{ env.pkg_name }}/*:component_bullet=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
+            -o ${{ env.pkg_name }}/*:with_freetype=${{ matrix.configs == 'fhsim' && 'True' || 'False' }} \
             -b missing -b outdated -b ${{ env.pkg_name }}* \
             --version ${{ matrix.version }} --user sintef --channel ${{ matrix.channel }} \
             .
