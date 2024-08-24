@@ -16,12 +16,11 @@ Subject: [PATCH] Do conanization fixes
  PlugIns/DotScene/CMakeLists.txt       |  2 +-
  PlugIns/FreeImageCodec/CMakeLists.txt |  8 +--
  PlugIns/GLSLang/CMakeLists.txt        | 21 ++++----
- RenderSystems/Tiny/CMakeLists.txt     | 12 ++++-
  RenderSystems/Vulkan/CMakeLists.txt   |  3 +-
  Tests/CMakeLists.txt                  |  2 +-
  Tools/AssimpConverter/CMakeLists.txt  |  3 --
  Tools/XMLConverter/CMakeLists.txt     |  2 +-
- 17 files changed, 92 insertions(+), 70 deletions(-)
+ 16 files changed, 80 insertions(+), 67 deletions(-)
 
 diff --git a/CMake/Dependencies.cmake b/CMake/Dependencies.cmake
 index 9c267efdf..25859e295 100644
@@ -42,12 +41,10 @@ index 9c267efdf..25859e295 100644
  #######################################################################
  
  # Find FreeImage
--find_package(FreeImage)
--macro_log_feature(FreeImage_FOUND "freeimage" "Support for commonly used graphics image formats" "http://freeimage.sourceforge.net")
-+find_package(freeimage QUIET)
-+if(TARGET freeimage::freeimage)
-+  macro_log_feature(freeimage_FOUND "freeimage" "Support for commonly used graphics image formats" "http://freeimage.sourceforge.net")
-+endif()
+ find_package(FreeImage)
+ macro_log_feature(FreeImage_FOUND "freeimage" "Support for commonly used graphics image formats" "http://freeimage.sourceforge.net")
++
++
  
  # Find FreeType
 -find_package(Freetype)
@@ -59,7 +56,7 @@ index 9c267efdf..25859e295 100644
  
  # Find X11
  if (UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
-@@ -262,16 +262,25 @@ endif()
+@@ -262,16 +262,21 @@ endif()
  
  # Find Cg
  if (NOT (APPLE_IOS OR WINDOWS_STORE OR WINDOWS_PHONE OR ANDROID OR EMSCRIPTEN))
@@ -79,11 +76,7 @@ index 9c267efdf..25859e295 100644
  
  # OpenEXR
  find_package(OpenEXR)
-+if(TARGET openexr::openexr)
-+  set(OPENEXR_FOUND ON)
-+endif()
  macro_log_feature(OPENEXR_FOUND "OpenEXR" "Load High dynamic range images" "http://www.openexr.com/")
-+set(OPENEXR_LIBRARIES openexr::openexr)
  
  # Python
  set(Python_ADDITIONAL_VERSIONS 3.4) # allows using python3 on Ubuntu 14.04
@@ -209,7 +202,7 @@ index 2dd7d6cf6..358716578 100644
    # MSVC only builds for intel anyway
    # all IOS devices are little endian
    set(OGRE_TEST_BIG_ENDIAN FALSE)
-+  # Test will will if Qt6 is a requirement, unknown why
++  # Test will fail if Qt6 is a requirement, unknown why
 +  if(QT_VERSION_MAJOR STREQUAL 6)
 +    message(WARNING "OGRE_TEST_BIG_ENDIAN set to FALSE without testing")
 +  endif()
@@ -227,15 +220,6 @@ index 2dd7d6cf6..358716578 100644
  cmake_dependent_option(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI "Include dear imgui in Overlays" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
  
  cmake_dependent_option(OGRE_BUILD_COMPONENT_BITES "Build OgreBites component" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
-@@ -355,7 +364,7 @@ set(OGRE_CONFIG_THREAD_PROVIDER "std" CACHE STRING
- 	std   - STL thread library (requires compiler support)."
- )
- set_property(CACHE OGRE_CONFIG_THREAD_PROVIDER PROPERTY STRINGS boost poco tbb std)
--cmake_dependent_option(OGRE_BUILD_PLUGIN_FREEIMAGE "Build FreeImage codec." TRUE "FreeImage_FOUND" FALSE)
-+cmake_dependent_option(OGRE_BUILD_PLUGIN_FREEIMAGE "Build FreeImage codec." TRUE "freeimage_FOUND" FALSE)
- cmake_dependent_option(OGRE_BUILD_PLUGIN_EXRCODEC "Build EXR Codec plugin" TRUE "OPENEXR_FOUND;" FALSE)
- option(OGRE_BUILD_PLUGIN_STBI "Enable STBI image codec." TRUE)
- option(OGRE_BUILD_PLUGIN_RSIMAGE "Enable image-rs codec." FALSE)
 diff --git a/Components/Bullet/CMakeLists.txt b/Components/Bullet/CMakeLists.txt
 index 670f85a2c..257b8b28c 100644
 --- a/Components/Bullet/CMakeLists.txt
@@ -250,37 +234,10 @@ index 670f85a2c..257b8b28c 100644
    target_include_directories(OgreBullet PUBLIC "$<INSTALL_INTERFACE:include/bullet>")
    target_link_libraries(OgreBullet PUBLIC "$<BUILD_INTERFACE:${BULLET_LIBRARIES}>")
  else()
--  target_link_libraries(OgreBullet PUBLIC ${BULLET_LIBRARIES})
-+  target_link_libraries(OgreBullet PUBLIC Bullet::Bullet)
+   target_link_libraries(OgreBullet PUBLIC ${BULLET_LIBRARIES})
  endif()
  
  generate_export_header(OgreBullet
-diff --git a/Components/Csharp/CMakeLists.txt b/Components/Csharp/CMakeLists.txt
-index 36d4e1e34..37c799b21 100644
---- a/Components/Csharp/CMakeLists.txt
-+++ b/Components/Csharp/CMakeLists.txt
-@@ -16,7 +16,7 @@ if(NOT CMAKE_CSharp_COMPILER)
- endif()
- 
- include_directories("${PROJECT_BINARY_DIR}/include" "${PROJECT_SOURCE_DIR}/OgreMain/include")
--include(${SWIG_USE_FILE})
-+include(UseSWIG)
- 
- if(MSVC)
- 	add_definitions(/bigobj /wd4700)
-diff --git a/Components/Java/CMakeLists.txt b/Components/Java/CMakeLists.txt
-index baa72dcdd..1082c547a 100644
---- a/Components/Java/CMakeLists.txt
-+++ b/Components/Java/CMakeLists.txt
-@@ -16,7 +16,7 @@ endif()
- 
- include_directories(${JNI_INCLUDE_DIRS})
- include_directories("${PROJECT_BINARY_DIR}/include" "${PROJECT_SOURCE_DIR}/OgreMain/include")
--include(${SWIG_USE_FILE})
-+include(UseSWIG)
- 
- if(MSVC)
- 	add_definitions(/bigobj /wd4700)
 diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
 index 9b6f7908f..0358760f1 100644
 --- a/Components/Overlay/CMakeLists.txt
@@ -301,9 +258,8 @@ index 9b6f7908f..0358760f1 100644
 -if(FREETYPE_FOUND)
 +if(OGRE_WITH_FREETYPE)
    target_compile_definitions(OgreOverlay PRIVATE HAVE_FREETYPE)
--  target_link_libraries(OgreOverlay PRIVATE ${FREETYPE_LIBRARIES})
+   target_link_libraries(OgreOverlay PRIVATE ${FREETYPE_LIBRARIES})
 -  target_include_directories(OgreOverlay PRIVATE ${FREETYPE_INCLUDE_DIRS})
-+  target_link_libraries(OgreOverlay PRIVATE Freetype::Freetype)
    if(ZLIB_FOUND)
      target_link_libraries(OgreOverlay PRIVATE ZLIB::ZLIB)
    endif()
@@ -318,19 +274,6 @@ index 9b6f7908f..0358760f1 100644
  
  if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
    target_include_directories(OgreOverlay PUBLIC
-diff --git a/Components/Python/CMakeLists.txt b/Components/Python/CMakeLists.txt
-index b4682021e..709ea9e5d 100644
---- a/Components/Python/CMakeLists.txt
-+++ b/Components/Python/CMakeLists.txt
-@@ -6,7 +6,7 @@ endif()
- 
- include_directories(${PYTHON_INCLUDE_PATH})
- include_directories("${PROJECT_BINARY_DIR}/include" "${PROJECT_SOURCE_DIR}/OgreMain/include")
--include(${SWIG_USE_FILE})
-+include(UseSWIG)
- 
- set(PYTHON_SITE_PACKAGES lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages/Ogre/)
- 
 diff --git a/PlugIns/Assimp/CMakeLists.txt b/PlugIns/Assimp/CMakeLists.txt
 index 3dc686ae3..3325902f3 100644
 --- a/PlugIns/Assimp/CMakeLists.txt
@@ -344,19 +287,6 @@ index 3dc686ae3..3325902f3 100644
  
  if(OGRE_BUILD_COMPONENT_RTSHADERSYSTEM)
      target_link_libraries(Codec_Assimp PUBLIC OgreRTShaderSystem)
-diff --git a/PlugIns/DotScene/CMakeLists.txt b/PlugIns/DotScene/CMakeLists.txt
-index ffc2622c4..ad0cbf8b5 100644
---- a/PlugIns/DotScene/CMakeLists.txt
-+++ b/PlugIns/DotScene/CMakeLists.txt
-@@ -5,7 +5,7 @@ add_library(Plugin_DotScene ${OGRE_LIB_TYPE} ${HEADER_FILES} src/DotSceneLoader.
- target_include_directories(Plugin_DotScene PUBLIC
-     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-     $<INSTALL_INTERFACE:include/OGRE/Plugins/DotScene>)
--target_link_libraries(Plugin_DotScene PUBLIC OgreMain PRIVATE pugixml)
-+target_link_libraries(Plugin_DotScene PUBLIC OgreMain PRIVATE pugixml::pugixml)
- if(OGRE_BUILD_COMPONENT_TERRAIN)
-     target_link_libraries(Plugin_DotScene PUBLIC OgreTerrain)
- endif()
 diff --git a/PlugIns/FreeImageCodec/CMakeLists.txt b/PlugIns/FreeImageCodec/CMakeLists.txt
 index 1721957cd..6a5be7979 100644
 --- a/PlugIns/FreeImageCodec/CMakeLists.txt
@@ -365,9 +295,8 @@ index 1721957cd..6a5be7979 100644
  
  add_definitions(-DFREEIMAGE_LIB)
  add_library(Codec_FreeImage ${OGRE_LIB_TYPE} ${HEADER_FILES} ${SOURCES})
--target_link_libraries(Codec_FreeImage PUBLIC OgreMain ${FreeImage_LIBRARIES})
+ target_link_libraries(Codec_FreeImage PUBLIC OgreMain ${FreeImage_LIBRARIES})
 -target_include_directories(Codec_FreeImage PUBLIC 
-+target_link_libraries(Codec_FreeImage PUBLIC OgreMain PRIVATE freeimage::freeimage)
 +target_include_directories(Codec_FreeImage PUBLIC
      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 -    $<INSTALL_INTERFACE:include/OGRE/Plugins/FreeImageCodec>
@@ -410,30 +339,6 @@ index 49665ad0d..8ec604ed8 100644
  endif()
  
  ogre_config_framework(Plugin_GLSLangProgramManager)
-diff --git a/RenderSystems/Tiny/CMakeLists.txt b/RenderSystems/Tiny/CMakeLists.txt
-index b91d50a95..da5c68a0e 100644
---- a/RenderSystems/Tiny/CMakeLists.txt
-+++ b/RenderSystems/Tiny/CMakeLists.txt
-@@ -20,8 +20,18 @@ target_include_directories(RenderSystem_Tiny PUBLIC
-     $<INSTALL_INTERFACE:include/OGRE/RenderSystems/Tiny>)
- 
- find_package(OpenMP QUIET)
-+if(MSVC)
-+    find_package(OpenMP QUIET)
-+else()
-+  find_package(llvm-openmp MODULE)
-+  set(OpenMP_CXX_FOUND 1)
-+  if(NOT TARGET OpenMP::OpenMP_CXX)
-+    add_library(OpenMP::OpenMP_CXX INTERFACE IMPORTED)
-+  endif()
-+  target_link_libraries(OpenMP::OpenMP_CXX INTERFACE llvm-openmp::llvm-openmp)
-+endif()
- if(OpenMP_CXX_FOUND)
--    target_link_libraries(RenderSystem_Tiny PUBLIC OpenMP::OpenMP_CXX)
-+    target_link_libraries(RenderSystem_Tiny PRIVATE OpenMP::OpenMP_CXX)
- endif()
- 
- if(SDL2_FOUND)
 diff --git a/RenderSystems/Vulkan/CMakeLists.txt b/RenderSystems/Vulkan/CMakeLists.txt
 index 630e6dae0..757d14e59 100755
 --- a/RenderSystems/Vulkan/CMakeLists.txt
@@ -473,19 +378,6 @@ index 58c996f7e..16b7843c6 100644
 -set_property(TARGET OgreAssimpConverter PROPERTY
 -	INSTALL_RPATH "$ORIGIN/../${OGRE_PLUGINS_PATH}")
 \ No newline at end of file
-diff --git a/Tools/XMLConverter/CMakeLists.txt b/Tools/XMLConverter/CMakeLists.txt
-index fa5411f14..b4a39d28c 100644
---- a/Tools/XMLConverter/CMakeLists.txt
-+++ b/Tools/XMLConverter/CMakeLists.txt
-@@ -23,7 +23,7 @@ set(SOURCE_FILES
- 
- add_executable(OgreXMLConverter ${HEADER_FILES} ${SOURCE_FILES})
- target_include_directories(OgreXMLConverter PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
--target_link_libraries(OgreXMLConverter OgreMain pugixml)
-+target_link_libraries(OgreXMLConverter OgreMain pugixml::pugixml)
- 
- if (OGRE_PROJECT_FOLDERS)
- 	set_property(TARGET OgreXMLConverter PROPERTY FOLDER Tools)
 -- 
 2.30.2
 

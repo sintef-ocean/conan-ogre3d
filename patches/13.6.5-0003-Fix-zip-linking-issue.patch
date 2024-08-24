@@ -1,0 +1,32 @@
+From 58e1bddec478f44bc771c30053e7e81d4b66a187 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Wed, 26 Jun 2024 11:45:10 +0200
+Subject: [PATCH] Fix zip
+
+---
+ OgreMain/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/OgreMain/CMakeLists.txt b/OgreMain/CMakeLists.txt
+index 44a177874..8feaafd37 100644
+--- a/OgreMain/CMakeLists.txt
++++ b/OgreMain/CMakeLists.txt
+@@ -155,7 +155,6 @@ if (OGRE_CONFIG_ENABLE_ASTC)
+ endif ()
+ 
+ if (OGRE_CONFIG_ENABLE_ZIP)
+-  include_directories(src/zip)
+   list(APPEND HEADER_FILES include/OgreZip.h)
+   list(APPEND SOURCE_FILES src/OgreZip.cpp src/zip/zip.c)
+ 
+@@ -197,6 +196,7 @@ generate_export_header(OgreMain
+ target_include_directories(OgreMain PUBLIC 
+   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>" 
+   "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
++  "$<IF:$<BOOL:OGRE_CONFIG_ENABLE_ZIP>,$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/zip>,>"
+   $<INSTALL_INTERFACE:include/OGRE>
+   PRIVATE "${OGRE_PROFILING_REMOTERY_PATH}")
+ 
+-- 
+2.39.2
+

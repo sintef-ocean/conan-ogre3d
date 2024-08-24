@@ -3,7 +3,7 @@ from shutil import which
 
 from conan import ConanFile
 from conan.tools.scm import Version
-from conan.tools.files import get, copy, rmdir
+from conan.tools.files import get, copy, rmdir, rm, save
 from conan.tools.files import apply_conandata_patches, export_conandata_patches
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 from conan.errors import ConanInvalidConfiguration
@@ -189,11 +189,6 @@ class Ogre3dConan(ConanFile):
         if self.settings.os != "Windows":
             del self.options.rendersystem_direct3d9
             del self.options.rendersystem_direct3d11
-        if Version(self.version) < "13.4.0":
-            del self.options.component_bullet
-
-        if Version(self.version) < "13.6.4":
-            del self.options.plugin_rsimage
 
     def configure(self):
         self.options["freetype/*"].shared = False
@@ -202,9 +197,6 @@ class Ogre3dConan(ConanFile):
         self.options["openexr/*"].shared = False
         self.options["glslang/*"].shared = False
         self.options["bullet3/*"].shared = False
-        if self.settings.os != "Windows":
-            self.options["llvm-openmp/*"].shared = False
-            self.options["llvm-openmp/*"].fPIC = True
 
         if self.options.with_qt in ["5", "6"]:
             self.output.warn("Qt required to be shared for now")
@@ -238,8 +230,6 @@ class Ogre3dConan(ConanFile):
             self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_opengles:
             self.output.warning("OpenGL ES requirement not handled by conan")
-        if self.options.rendersystem_tiny and self.settings.os != "Windows":
-            self.requires(f"llvm-openmp/{deps['llvm-openmp']}")  # private=True
         if self.options.rendersystem_vulkan:
             self.requires(f"vulkan-loader/{deps['vulkan-loader']}")
 
@@ -258,6 +248,9 @@ class Ogre3dConan(ConanFile):
 
         if self.options.get_safe("component_bullet", False):
             self.requires(f"bullet3/{deps['bullet3']}")  # private=False
+
+        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            self.requires(f"imgui/{deps['imgui']}") # override=True if e.g. implot
 
         if self.settings.os == "Linux":
             self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
@@ -292,10 +285,6 @@ class Ogre3dConan(ConanFile):
             # TODO: support macos, emscripten, android, apple_ios
             raise ConanInvalidConfiguration(
                 f"Recipe not yet supported for '{self.settings.os}'")
-
-        if Version(self.version) < "13.5.0" and self.options.with_qt == "6":
-            raise ConanInvalidConfiguration(
-                "'with_qt' cannot be 6 for version less than 13.5.0")
 
         if self.options.install_samples and \
            self.options.rendersystem_vulkan and \
@@ -344,6 +333,8 @@ class Ogre3dConan(ConanFile):
         tc.variables["OGRE_INSTALL_DOCS"] = False
         tc.variables["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # Subject to change
         tc.variables["OGRE_WITH_FREETYPE"] = self.options.with_freetype
+        if self.options.with_freetype:
+            tc.cache_variables["FREETYPE_LIBRARIES"] = "Freetype::Freetype"
         tc.variables["OGRE_WITH_SDL"] = self.options.with_sdl
         tc.variables["OGRE_WITH_QT"] = self.options.with_qt in ["5", "6"]
         if self.options.with_qt in ["5", "6"]:
@@ -366,7 +357,12 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{plugins}_BSP"] = self.options.plugin_bsp
         tc.variables[f"{plugins}_DOT_SCENE"] = self.options.plugin_dotscene
         tc.variables[f"{plugins}_EXRCODEC"] = self.options.plugin_exrcodec
+        if self.options.plugin_exrcodec:
+            tc.cache_variables["OPENEXR_FOUND"] = True
+            tc.cache_variables["OPENEXR_LIBRARIES"] = "openexr::openexr"
         tc.variables[f"{plugins}_FREEIMAGE"] = self.options.plugin_freeimage
+        if self.options.plugin_freeimage:
+            tc.cache_variables["FreeImage_LIBRARIES"] = "freeimage::freeimage"
         tc.variables[f"{plugins}_GLSLANG"] = self.options.plugin_glslang
         tc.variables[f"{plugins}_OCTREE"] = self.options.plugin_octree
         tc.variables[f"{plugins}_PCZ"] = self.options.plugin_pcz
@@ -387,8 +383,7 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem
         tc.variables[f"{comp}_TERRAIN"] = self.options.component_terrain
         tc.variables[f"{comp}_VOLUME"] = self.options.component_volume
-        if Version(self.version) >= "13.4.0":
-            tc.variables[f"{comp}_BULLET"] = self.options.component_bullet
+        tc.variables[f"{comp}_BULLET"] = self.options.component_bullet
 
         tc.variables["OGRE_BUILD_RTSHADERSYSTEM_SHADERS"] = \
             self.options.component_rtshadersystem
@@ -425,11 +420,34 @@ class Ogre3dConan(ConanFile):
             deps.build_context_activated.append("gtest")
         if self._need_swig:
             deps.build_context_activated.append("swig")
+            tc.cache_variables["SWIG_USE_FILE"] = "UseSwig"
+
+        deps.set_property("pugixml", "cmake_target_name", "pugixml")
+        deps.set_property("freeimage", "cmake_file_name", "FreeImage")
         deps.generate()
+
+        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            # copy imgui sources, misc and headers
+            imgui_dir = path.join(self.build_folder, "imgui")
+            for dep in self.dependencies.values():
+                if dep.ref.name == "imgui":
+                    copy(self, "*", keep_path=False,
+                         src=dep.cpp_info.includedirs[0],
+                         dst=imgui_dir)
+                    copy(self, "*", keep_path=True,
+                         src=path.join(dep.package_folder, "res", "misc", "freetype"),
+                         dst=path.join(imgui_dir, "misc", "freetype"))
+                    copy(self, "*", keep_path=True,
+                         src=path.join(dep.package_folder, "res", "src"),
+                         dst=imgui_dir)
+                    # export headers are defined in ogre's imconfig.h
+                    rm(self, "imgui_export_headers.h", imgui_dir)
+                    save(self, path.join(imgui_dir, "imgui_export_headers.h"), "#pragma once")
 
     def system_requirements(self):
         if self.options.rendersystem_opengles:
             Apt(self).install(["libgles2-mesa-dev"], check=True)
+            #TODO add others package managers too
 
     def build(self):
         cmake = CMake(self)
@@ -484,6 +502,8 @@ class Ogre3dConan(ConanFile):
             comp.requires.append("sdl::sdl")
         if self.options.with_qt in ["5", "6"]:
             comp.requires.append("qt::qt")
+        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            comp.requires.append("imgui::imgui")
 
         if self.options.rendersystem_opengl or self.options.rendersystem_opengl3:
             rend.requires.append("opengl::opengl")
@@ -492,8 +512,11 @@ class Ogre3dConan(ConanFile):
             self.options.rendersystem_opengles) and \
            self.settings.os == "Linux":
             rend.requires.append("egl::egl")
-        if self.options.rendersystem_tiny and self.settings.os == "Windows":
-            rend.requires.append("llvm-openmpl::llvm-openmpl")
+        if self.options.rendersystem_tiny and self.settings.os == "Linux":
+            if self.settings.compiler == "gcc":
+                rend.system_libs.append("gomp")
+            elif self.settings.compiler == "clang":
+                rend.system_libs.append("omp")
         if self.options.rendersystem_vulkan:
             rend.requires.append("vulkan-loader::vulkan-loader")
 

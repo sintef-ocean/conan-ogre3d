@@ -1,0 +1,50 @@
+From 3ffbc2b194a96c3f28e9024de1de0afc429ac8e7 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Fri, 23 Aug 2024 19:25:54 +0200
+Subject: [PATCH] Use-imgui-from-conan
+
+---
+ Components/Overlay/CMakeLists.txt  | 6 ++++--
+ Components/Overlay/include/ImGui.i | 2 ++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/Components/Overlay/CMakeLists.txt b/Components/Overlay/CMakeLists.txt
+index fa29fcee7..a64933112 100644
+--- a/Components/Overlay/CMakeLists.txt
++++ b/Components/Overlay/CMakeLists.txt
+@@ -19,7 +19,7 @@ list(APPEND HEADER_FILES
+ file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+ 
+ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+-  set(IMGUI_DIR "${PROJECT_BINARY_DIR}/imgui-1.89.8" CACHE PATH "")
++  set(IMGUI_DIR "${PROJECT_BINARY_DIR}/imgui" CACHE PATH "")
+   if(NOT EXISTS ${IMGUI_DIR})
+     message(STATUS "Downloading imgui")
+     file(DOWNLOAD
+@@ -79,7 +79,9 @@ if(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI)
+     set_source_files_properties(${IMGUI_DIR}/imgui_draw.cpp PROPERTIES
+       COMPILE_FLAGS "-Wno-cast-qual")
+     set_source_files_properties(${IMGUI_DIR}/imgui.cpp PROPERTIES
+-      COMPILE_FLAGS "-Wno-cast-qual")
++      COMPILE_FLAGS "-Wno-cast-qual -Wno-unused-variable")
++    set_source_files_properties(${IMGUI_DIR}/imgui_demo.cpp PROPERTIES
++      COMPILE_FLAGS "-Wno-cast-qual -Wno-format-truncation")
+     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+       set_property(SOURCE ${IMGUI_DIR}/misc/freetype/imgui_freetype.cpp
+         APPEND PROPERTY COMPILE_OPTIONS "-Wno-unknown-warning-option")
+diff --git a/Components/Overlay/include/ImGui.i b/Components/Overlay/include/ImGui.i
+index 63b51ff66..b9a57679c 100644
+--- a/Components/Overlay/include/ImGui.i
++++ b/Components/Overlay/include/ImGui.i
+@@ -21,6 +21,8 @@
+ %ignore ImGui::SetTooltipV;
+ %ignore ImGui::SetItemTooltipV;
+ %ignore ImGuiTextBuffer::appendfv;
++%ignore ImGui::DebugLogV;
++%ignore ImGuiSelectionBasicStorage;
+ 
+ %typemap(in) ImTextureID {
+     size_t argp;
+-- 
+2.39.2
+
