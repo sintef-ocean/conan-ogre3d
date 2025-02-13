@@ -11,15 +11,15 @@ sources:
 
 dependencies:
   14.1.1:
-    assimp: 5.4.2
+    assimp: 5.4.3
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
-    freetype: 2.13.2
+    freetype: 2.13.3
     glslang: 11.7.0
     gtest: 1.11.0
     cmake: "[>=3.16 <4]"
-    imgui: 1.91.0
+    imgui: 1.91.5
     openexr: 2.5.9
     opengl: system
     openssl: "[>=1.1 <4]"
@@ -33,13 +33,13 @@ dependencies:
     xorg: system
     zlib: "[>=1.2.11 <2]"
     libjpeg: 9e
-    libpng: 1.6.43
+    libpng: 1.6.46
   13.6.5:
-    assimp: 5.4.2
+    assimp: 5.4.3
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
-    freetype: 2.13.2
+    freetype: 2.13.3
     glslang: 11.7.0
     gtest: 1.11.0
     cmake: "[>=3.16 <4]"
@@ -56,7 +56,7 @@ dependencies:
     xorg: system
     zlib: "[>=1.2.11 <2]"
     libjpeg: 9e
-    libpng: 1.6.43
+    libpng: 1.6.46
 
 patches:
   14.1.1:
