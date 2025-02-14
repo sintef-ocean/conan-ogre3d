@@ -4,17 +4,12 @@
 
 [Conan.io](https://conan.io) recipe for [Ogre3D](https://www.ogre3d.org).
 
-*Note* We are refactoring to support conan v2. The consequence of this is that the recipe
-no longer supports old generators such as `cmake_paths` and `cmake_find_package`. Use
-`CMakeToolchain` and `CMakeDeps` instead.
-
-
 ## How to use this package
 
 1. Add remote to conan's package [remotes](https://docs.conan.io/2/reference/commands/remote.html)
 
    ```bash
-   $ conan remote add sintef https://artifactory.smd.sintef.no/artifactory/api/conan/conan-local
+   $ conan remote add sintef https://package.smd.sintef.no
    ```
 
 2. Using [*conanfile.txt*](https://docs.conan.io/2/reference/conanfile_txt.html) and *cmake* in your project.

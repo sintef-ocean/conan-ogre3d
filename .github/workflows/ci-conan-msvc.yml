@@ -12,11 +12,11 @@ env:
 jobs:
   conan-with-msvc:
     name: Conan
-    runs-on: windows-2022
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
-        version: [14.1.1]
+        version: [14.1.1, 14.3.4]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
         profile: [msvc17]
