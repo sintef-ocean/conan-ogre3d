@@ -1,5 +1,9 @@
 ---
 sources:
+  14.4.1:
+    sha256: 1c1d5d48b26acf8dd3f32fcb4cafd1216f9fe3a2ceec260ec086926651ad74de
+    url:
+      - https://github.com/OGRECave/ogre/archive/refs/tags/v14.4.1.tar.gz
   14.3.4:
     sha256: 0c74e6ca7bb920ff59c5da8a359e6d96215c7804261301feec4f2e54f206b27d
     url:
@@ -14,6 +18,30 @@ sources:
       - https://github.com/OGRECave/ogre/archive/refs/tags/v13.6.5.tar.gz
 
 dependencies:
+  14.4.1:
+    assimp: 5.4.3  # 6.0.2 should be used
+    bullet3: 3.25
+    egl: system
+    freeimage: 3.18.0
+    freetype: 2.13.3
+    glslang: 11.7.0
+    gtest: 1.16.0
+    cmake: "[>=3.16 <4]"
+    imgui: "[<1.92]"  # Pinned until new features are applied in Ogre
+    openexr: 2.5.9
+    opengl: system
+    openssl: "[>=1.1 <4]"
+    pugixml: 1.14  # Assimp issue
+    qt5: "[>=5.15 <6]"
+    qt6: "[>=6.1]"
+    sdl: "[>=2.28.0 <2.33]"
+    swig: "[>=4 <5]"
+    vulkan-loader: 1.4.313.0
+    xkbcommon: 1.6.0
+    xorg: system
+    zlib: "[>=1.2.11 <2]"
+    libjpeg: 9f
+    libpng: 1.6.50
   14.3.4:
     assimp: 5.4.3
     bullet3: 3.25
@@ -87,6 +115,10 @@ dependencies:
     libpng: 1.6.46
 
 patches:
+  14.4.1:
+    - patch_file: patches/14.4.1-0001-Set-rpath-with-origin-variants.patch
+    - patch_file: patches/14.4.1-0002-Remove-absolute-paths-from-ogre-config.patch
+    - patch_file: patches/14.4.1-0003-Do-conanization-fixes.patch
   14.3.4:
     - patch_file: patches/14.3.4-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/14.3.4-0002-Remove-absolute-paths-from-ogre-config.patch
