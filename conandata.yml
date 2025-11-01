@@ -19,7 +19,7 @@ sources:
 
 dependencies:
   14.4.1:
-    assimp: 5.4.3  # 6.0.2 should be used
+    assimp: 6.0.2
     bullet3: 3.25
     egl: system
     freeimage: 3.18.0
@@ -31,7 +31,7 @@ dependencies:
     openexr: 2.5.9
     opengl: system
     openssl: "[>=1.1 <4]"
-    pugixml: 1.14  # Assimp issue
+    pugixml: 1.14
     qt5: "[>=5.15 <6]"
     qt6: "[>=6.1]"
     sdl: "2.32.8"
