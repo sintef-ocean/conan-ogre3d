@@ -21,7 +21,7 @@ jobs:
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
         profile: [gcc]
-        compiler_version: [11, 12, 13, 14]
+        compiler_version: [12, 14]
         channel: ["${{ (github.head_ref || github.ref_name) == 'master' && 'stable' || 'testing' }}"]
         include:
           - linux: debian:latest
@@ -29,14 +29,8 @@ jobs:
             linux: debian:trixie
             compiler_version: 14
           -
-            linux: ubuntu:24.04
-            compiler_version: 13
-          -
             linux: debian:bookworm
             compiler_version: 12
-          -
-            linux: ubuntu:22.04
-            compiler_version: 11
     container:
       image: ${{ matrix.linux }}
       options: -u 0
