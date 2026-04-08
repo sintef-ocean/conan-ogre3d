@@ -314,11 +314,11 @@ index 17844605c..04bfb7826 100644
 -  target_link_libraries(Plugin_GLSLangProgramManager PUBLIC OgreMain ${GLSLANG_LIBS})
 +  target_link_libraries(Plugin_GLSLangProgramManager PUBLIC
 +    OgreMain
-+    glslang::glslang glslang::HLSL glslang::OSDependent glslang::OGLCompiler glslang::SPIRV SPIRV-Tools-static SPIRV-Tools-opt)
++    glslang::glslang glslang::MachineIndependent glslang::SPIRV SPIRV-Tools-static SPIRV-Tools-opt)
 +else()
 +  target_link_libraries(Plugin_GLSLangProgramManager PUBLIC
 +    OgreMain
-+    glslang::glslang glslang::HLSL glslang::OSDependent glslang::OGLCompiler glslang::SPIRV SPIRV-Tools-static SPIRV-Tools-opt)
++    glslang::glslang glslang::MachineIndependent glslang::SPIRV SPIRV-Tools-static SPIRV-Tools-opt)
  endif()
  ogre_config_framework(Plugin_GLSLangProgramManager)
  ogre_config_plugin(Plugin_GLSLangProgramManager)

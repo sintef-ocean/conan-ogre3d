@@ -9,7 +9,7 @@
 1. Add remote to conan's package [remotes](https://docs.conan.io/2/reference/commands/remote.html)
 
    ```bash
-   $ conan remote add sintef https://package.smd.sintef.no
+   $ conan remote add sintef https://gitlab.sintef.no/api/v4/projects/22218/packages/conan
    ```
 
 2. Using [*conanfile.txt*](https://docs.conan.io/2/reference/conanfile_txt.html) and *cmake* in your project.
@@ -17,7 +17,7 @@
    Add *conanfile.txt*:
    ```
    [requires]
-   ogre3d/[~13.5.0]@sintef/stable
+   ogre3d/[~14.5.0]@sintef/stable
 
    [options]
    ogre3d:with_sdl=True
@@ -124,6 +124,7 @@ To build and run tests, set `tools.build:skip_test=False` in `global.conf`, in `
 `--conf` as part of `conan install`. *Note:* Since `13.6.4` you need to set option
 `install_samples=True` in addition to the default options to actually to build and run
 tests. For simplicity, we require this option to be enabled for older versions too.
+You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building with tests.
 
 
 ## Known recipe issues

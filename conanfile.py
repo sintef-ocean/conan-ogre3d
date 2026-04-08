@@ -97,7 +97,7 @@ class Ogre3dConan(ConanFile):
         "plugin_assimp": True,
         "plugin_bsp": True,
         "plugin_dotscene": True,
-        "plugin_exrcodec": True,
+        "plugin_exrcodec": False, # Deprecated
         "plugin_freeimage": False,
         "plugin_glslang": True,
         "plugin_octree": True,
@@ -244,7 +244,7 @@ class Ogre3dConan(ConanFile):
             self.requires(f"freetype/{deps['freetype']}")  # private=True
         if self.options.plugin_glslang:
             self.requires(f"glslang/{deps['glslang']}")  # private=False
-            self.requires(f"spirv-tools/[>=2021.4]")
+            self.requires(f"spirv-tools/{deps['glslang']}") # uses same version as glslang
 
         if self.options.get_safe("component_bullet", False):
             self.requires(f"bullet3/{deps['bullet3']}")  # private=False
