@@ -26,11 +26,11 @@ jobs:
         include:
           - linux: debian:latest
           -
-            linux: debian:trixie
-            compiler_version: 14
-          -
             linux: debian:bookworm
             compiler_version: 12
+          -
+            linux: debian:trixie
+            compiler_version: 14
     container:
       image: ${{ matrix.linux }}
       options: -u 0
