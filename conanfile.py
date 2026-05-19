@@ -63,6 +63,7 @@ class Ogre3dConan(ConanFile):
         "component_rtshadersystem": [True, False],
         "component_terrain": [True, False],
         "component_volume": [True, False],
+        "enable_imgui_32bit": [True, False],
         "enable_astc": [True, False],
         "enable_dds": [True, False],
         "enable_double": [True, False],
@@ -115,6 +116,7 @@ class Ogre3dConan(ConanFile):
         "component_rtshadersystem": True,
         "component_terrain": True,
         "component_volume": True,
+        "enable_imgui_32bit": True,  # Experimental
         "enable_astc": True,
         "enable_dds": True,
         "enable_double": False,  # does not work with tiny
@@ -378,6 +380,7 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{comp}_MESHLODGENERATOR"] = self.options.component_meshlodgenerator
         tc.variables[f"{comp}_OVERLAY"] = self.options.component_overlay
         tc.variables[f"{comp}_OVERLAY_IMGUI"] = self.options.component_overlay_imgui
+        tc.variables["OGRE_IMGUI_USE_32BIT_INDICES"] = self.options.enable_imgui_32bit
         tc.variables[f"{comp}_PAGING"] = self.options.component_paging
         tc.variables[f"{comp}_PROPERTY"] = self.options.component_property
         tc.variables[f"{comp}_RTSHADERSYSTEM"] = self.options.component_rtshadersystem

@@ -148,6 +148,7 @@ patches:
     - patch_file: patches/14.5.2-0002-Remove-absolute-paths-from-ogre-config.patch
     - patch_file: patches/14.5.2-0003-Do-conanization-fixes.patch
     - patch_file: patches/14.5.2-0004-Fix-c-20-issues.patch
+    - patch_file: patches/14.5.2-0005-Add-optional-imgui-32-bit-indices.patch
   14.4.1:
     - patch_file: patches/14.4.1-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/14.4.1-0002-Remove-absolute-paths-from-ogre-config.patch
