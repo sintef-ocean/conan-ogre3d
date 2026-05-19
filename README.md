@@ -106,6 +106,7 @@ We have added support for component targets [EXPERIMENTAL]:
 | component_rtshadersystem        | [True, False]     | True    |
 | component_terrain               | [True, False]     | True    |
 | component_volume                | [True, False]     | True    |
+| enable_imgui_32bit              | [True, False]     | True    |
 | enable_astc                     | [True, False]     | True    |
 | enable_dds                      | [True, False]     | True    |
 | enable_double                   | [True, False]     | False   |
