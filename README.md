@@ -1,5 +1,6 @@
 [![Linux GCC](https://github.com/sintef-ocean/conan-ogre3d/workflows/Linux%20GCC/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Linux+GCC")
 [![Windows MSVC](https://github.com/sintef-ocean/conan-ogre3d/workflows/Windows%20MSVC/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Windows+MSVC")
+[![macOS Apple Clang](https://github.com/sintef-ocean/conan-ogre3d/workflows/macOS%20Apple%20Clang/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"macOS+Apple+Clang")
 
 [Conan.io](https://conan.io) recipe for [Ogre3D](https://www.ogre3d.org).
 
@@ -138,11 +139,12 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
 
 ## Known recipe issues
 
-  The recipe is tested on Windows and Linux, and since `14.6.1` on Macos (arm64). It will
-  yet not work for Emscripten and Android, or other platforms for that matter.
-  - Macos: libraries are built as dylibs, not frameworks. Ogre's app bundles (samples,
-    `TestContext`) expect plugins as frameworks inside the bundle and do not run; only
-    `Test_Ogre` is run as test. Rendering was not verified in a GUI session.
+  The recipe is tested on Windows and Linux. It will yet not work for Emscripten and
+  Android, or other platforms for that matter.
+  - Macos support (arm64, from `14.6.1`) is experimental and not fully tested: the package
+    builds, plugins and rendersystems load and `Test_Ogre` passes, but rendering has not
+    been verified. Libraries are built as dylibs, not frameworks. Ogre's app bundles
+    (samples, `TestContext`) expect plugins as frameworks inside the bundle and do not run.
   - OpenGL ES dependency are system installed for Debian-based linux only
   - Currently, migration to conan v2 causes SWIG to not work: `bindings_*` options are not
     functional yet. A workaround is to install swig on your system and set modify recipe

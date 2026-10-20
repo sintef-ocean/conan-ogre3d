@@ -298,6 +298,9 @@ class Ogre3dConan(ConanFile):
             raise ConanInvalidConfiguration(
                 f"Recipe not yet supported for '{self.settings.os}'")
 
+        if self.settings.os == "Macos" and Version(self.version) < "14.6.1":
+            raise ConanInvalidConfiguration("Macos is supported from 14.6.1")
+
         if self.options.install_samples and \
            self.options.rendersystem_vulkan and \
            not (self.options.with_qt in ["5", "6"] or self.options.with_sdl):
