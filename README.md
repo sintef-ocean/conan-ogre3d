@@ -88,7 +88,7 @@ conflicting imgui version in the dependency graph is reported.
 | bindings_python                 | [True, False]     | False   |
 | rendersystem_direct3d11         | [True, False]     | True    |
 | rendersystem_direct3d9          | [True, False]     | False   |
-| rendersystem_metal              | [True, False]     | False   |
+| rendersystem_metal (Macos)      | [True, False]     | False   |
 | rendersystem_opengl             | [True, False]     | False   |
 | rendersystem_opengl3            | [True, False]     | True    |
 | rendersystem_opengles           | [True, False]     | False   |
@@ -138,8 +138,11 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
 
 ## Known recipe issues
 
-  The recipe is only tested on Windows and Linux. It will yet not work for Macos,
-  Emscripten and Android, or other platforms for that matter.
+  The recipe is tested on Windows and Linux, and since `14.6.1` on Macos (arm64). It will
+  yet not work for Emscripten and Android, or other platforms for that matter.
+  - Macos: libraries are built as dylibs, not frameworks. Ogre's app bundles (samples,
+    `TestContext`) expect plugins as frameworks inside the bundle and do not run; only
+    `Test_Ogre` is run as test. Rendering was not verified in a GUI session.
   - OpenGL ES dependency are system installed for Debian-based linux only
   - Currently, migration to conan v2 causes SWIG to not work: `bindings_*` options are not
     functional yet. A workaround is to install swig on your system and set modify recipe
@@ -157,10 +160,9 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
     OGRE_BITES_STATIC_PLUGINS           # TODO
     OGRE_BUILD_PLUGIN_CG                # Deprecated
     OGRE_BUILD_XSIEXPORTER              # Needs SoftImage (unsupported)
-    OGRE_BUILD_RENDERSYSTEM_METAL       # TODO for macos
     OGRE_BUILD_MSVC_MP
     OGRE_BUILD_MSVC_ZM
-    OGRE_BUILD_LIBS_AS_FRAMEWORKS
+    OGRE_BUILD_LIBS_AS_FRAMEWORKS       # Forced to false
     OGRE_CONFIG_STATIC_LINK_CRT
     OGRE_CONFIG_FILESYSTEM_UNICODE
     OGRE_CONFIG_THREADS                 # Default (3)
@@ -177,7 +179,7 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
   The following tasks are on the horizon for this recipe
   - [ ] Allow static build and add option fPIC
   - [ ] Ensure package info to follow native ogre's cmake and pkgconfig find scripts
-  - [ ] Add support for Macos, Emscripten, Android, and other platforms
+  - [ ] Add support for Emscripten, Android, and other platforms
   - [ ] Rename package name to ogre and move to conan center?
 
 ## Developer Notes

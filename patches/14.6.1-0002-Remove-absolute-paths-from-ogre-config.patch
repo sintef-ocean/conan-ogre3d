@@ -1,19 +1,19 @@
-From ecc1bf9d34c5bb84aef0755fc2f7e5fccf3ba9cd Mon Sep 17 00:00:00 2001
+From 65c011eececd27c4244859cae08fa02fb0573d99 Mon Sep 17 00:00:00 2001
 From: Joakim Haugen <joakim.haugen@sintef.no>
 Date: Wed, 8 Apr 2026 13:23:41 +0200
 Subject: [PATCH 2/5] Remove absolute paths from ogre config
 
 ---
- CMake/InstallResources.cmake                 | 8 ++++----
- CMake/Templates/OgreConfigPaths.h.in         | 6 +++---
- Components/Bites/src/OgreGLXConfigDialog.cpp | 2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ CMake/InstallResources.cmake                 | 13 +++++++++----
+ CMake/Templates/OgreConfigPaths.h.in         |  6 +++---
+ Components/Bites/src/OgreGLXConfigDialog.cpp |  2 +-
+ 3 files changed, 13 insertions(+), 8 deletions(-)
 
 diff --git a/CMake/InstallResources.cmake b/CMake/InstallResources.cmake
-index f88e0a119..930c68b81 100644
+index f88e0a119..46b60b20f 100644
 --- a/CMake/InstallResources.cmake
 +++ b/CMake/InstallResources.cmake
-@@ -33,10 +33,10 @@ endif()
+@@ -33,10 +33,15 @@ endif()
  if (NOT OGRE_PLUGINS_PATH)
    if (WIN32)
      set(OGRE_PLUGINS_PATH "${OGRE_BIN_DIRECTORY}")
@@ -22,11 +22,16 @@ index f88e0a119..930c68b81 100644
    else ()
      set(OGRE_PLUGINS_PATH "${OGRE_LIB_DIRECTORY}/OGRE")
 -    set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}/OGRE")
-+    set(OGRE_PLUGIN_DIR_REL "../../${OGRE_LIB_DIRECTORY}/OGRE")
++    if (APPLE)
++      # relative to plugins.cfg in bin
++      set(OGRE_PLUGIN_DIR_REL "../${OGRE_LIB_DIRECTORY}/OGRE")
++    else ()
++      set(OGRE_PLUGIN_DIR_REL "../../${OGRE_LIB_DIRECTORY}/OGRE")
++    endif ()
    endif()
  else ()
    set(OGRE_PLUGIN_DIR_REL "${CMAKE_INSTALL_PREFIX}/${OGRE_PLUGINS_PATH}")
-@@ -63,8 +63,8 @@ elseif (APPLE)
+@@ -63,8 +68,8 @@ elseif (APPLE)
    set(OGRE_SAMPLES_DIR_REL "Contents/Plugins/")
    set(OGRE_CFG_INSTALL_PATH "bin")
  elseif (UNIX)
