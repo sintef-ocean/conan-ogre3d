@@ -78,7 +78,7 @@ conflicting imgui version in the dependency graph is reported.
 
 | Option                          | Allowed values    | Default |
 |---------------------------------|-------------------|---------|
-| with_freetype                   | [True, False]     | False   |
+| with_freetype                   | [True, False]     | True    |
 | with_sdl                        | [True, False]     | True    |
 | with_qt                         | [False, "5", "6"] | False   |
 | install_samples                 | [True, False]     | False   |

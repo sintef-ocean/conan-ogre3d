@@ -79,7 +79,7 @@ class Ogre3dConan(ConanFile):
         }
 
     default_options = {
-        "with_freetype": False,
+        "with_freetype": True,  # stb_truetype fallback gets glyph advances wrong
         "with_sdl": True,
         "with_qt": False,
         "install_samples": False,
