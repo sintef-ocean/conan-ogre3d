@@ -16,7 +16,7 @@
    Add *conanfile.txt*:
    ```
    [requires]
-   ogre3d/[~14.5.0]@sintef/stable
+   ogre3d/[~14.6.0]@sintef/stable
 
    [options]
    ogre3d:with_sdl=True
@@ -65,6 +65,15 @@ We have added support for component targets [EXPERIMENTAL]:
  Typically, you only need to link `Ogre3D::Components`, but if you include headers from
  any of the other features in your code, you need to link the corresponding targets.
 
+### Dear ImGui
+
+With `component_overlay_imgui=True`, ImGui is compiled into and exported by `OgreOverlay`.
+Since `14.6.1` the package also contains the imgui headers needed to use it, including
+`imgui_internal.h` (e.g. for implot), in `include/OGRE/Overlay`. Do not link `imgui::imgui`
+in addition to `Ogre3D::Components`: it is a second ImGui with a different `imconfig.h`
+(export macros, `ImDrawIdx`). The imgui package is still a visible requirement, so a
+conflicting imgui version in the dependency graph is reported.
+
 ## Package options
 
 | Option                          | Allowed values    | Default |
@@ -88,7 +97,7 @@ We have added support for component targets [EXPERIMENTAL]:
 | plugin_assimp                   | [True, False]     | True    |
 | plugin_bsp                      | [True, False]     | True    |
 | plugin_dotscene                 | [True, False]     | True    |
-| plugin_exrcodec                 | [True, False]     | True    |
+| plugin_exrcodec                 | [True, False]     | False   |
 | plugin_freeimage                | [True, False]     | False   |
 | plugin_glslang                  | [True, False]     | True    |
 | plugin_octree                   | [True, False]     | True    |

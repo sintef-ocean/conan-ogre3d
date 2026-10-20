@@ -1,5 +1,9 @@
 ---
 sources:
+  14.6.1:
+    sha256: ec95dfd25c01904baa254316d9416c5acc348f58fde7e16570f698b0fdb1c87e
+    url:
+      - https://github.com/OGRECave/ogre/archive/refs/tags/v14.6.1.tar.gz
   14.5.2:
     sha256: 1949fe62f3e4b8043e82e4dc94f9b0ab412a5bffc9e10d3b1dddc80fe54fe1e3
     url:
@@ -22,6 +26,30 @@ sources:
       - https://github.com/OGRECave/ogre/archive/refs/tags/v13.6.5.tar.gz
 
 dependencies:
+  14.6.1:
+    assimp: 6.0.5
+    bullet3: 3.25
+    egl: system
+    freeimage: 3.18.0
+    freetype: 2.14.3
+    glslang: 1.4.357.0
+    gtest: 1.18.0
+    cmake: "[>=3.16 <5]"
+    imgui: 1.92.9b
+    openexr: 2.5.9
+    opengl: system
+    openssl: "[>=1.1 <4]"
+    pugixml: 1.14
+    qt5: "[>=5.15 <6]"
+    qt6: "[>=6.1]"
+    sdl: "2.32.10"
+    swig: "[>=4 <5]"
+    vulkan-loader: 1.4.357.0
+    xkbcommon: 1.13.1
+    xorg: system
+    zlib: "[>=1.2.11 <2]"
+    libjpeg: 9f
+    libpng: 1.6.58
   14.5.2:
     assimp: 6.0.2
     bullet3: 3.25
@@ -143,6 +171,12 @@ dependencies:
     libpng: 1.6.46
 
 patches:
+  14.6.1:
+    - patch_file: patches/14.6.1-0001-Set-rpath-with-origin-variants.patch
+    - patch_file: patches/14.6.1-0002-Remove-absolute-paths-from-ogre-config.patch
+    - patch_file: patches/14.6.1-0003-Do-conanization-fixes.patch
+    - patch_file: patches/14.6.1-0004-Fix-c-20-issues.patch
+    - patch_file: patches/14.6.1-0005-Add-optional-imgui-32-bit-indices.patch
   14.5.2:
     - patch_file: patches/14.5.2-0001-Set-rpath-with-origin-variants.patch
     - patch_file: patches/14.5.2-0002-Remove-absolute-paths-from-ogre-config.patch
