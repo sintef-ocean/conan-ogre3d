@@ -20,7 +20,6 @@ jobs:
         build_type: [Debug, Release]
         profile: [apple_clang]
         compiler_version: [17]
-        arch: [armv8]
         channel: ["${{ (github.head_ref || github.ref_name) == 'master' && 'stable' || 'testing' }}"]
     steps:
       - uses: actions/checkout@v6
@@ -37,7 +36,6 @@ jobs:
         run: |
           conan create -s:b build_type=${{ matrix.build_type }} -s:h build_type=${{ matrix.build_type }} \
             -s compiler.version=${{ matrix.compiler_version }} \
-            -s:b arch=${{ matrix.arch }} -s:h arch=${{ matrix.arch }} \
             -pr:b=${{ matrix.profile }} -pr:h=${{ matrix.profile }} \
             -b missing -b outdated -b '${{ env.pkg_name }}*' \
             --version ${{ matrix.version }} --user sintef --channel ${{ matrix.channel }} \
