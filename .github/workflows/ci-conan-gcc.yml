@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [14.4.1, 14.5.2]
+        version: [14.5.2, 14.6.1]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
         profile: [gcc]
@@ -54,9 +54,8 @@ jobs:
           conan create -s:b build_type=${{ matrix.build_type }} -s:h build_type=${{ matrix.build_type }} \
             -s compiler.version=${{ matrix.compiler_version }} \
             -pr:b=${{ matrix.profile }} -pr:h=${{ matrix.profile }} \
-            -o ${{ env.pkg_name }}/*:with_sdl=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
-            -o ${{ env.pkg_name }}/*:plugin_glslang=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
-            -o ${{ env.pkg_name }}/*:component_bullet=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
+            -o sdl/*:pulse=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
+            -o sdl/*:alsa=${{ matrix.configs == 'fhsim' && 'False' || 'True' }} \
             -b missing -b outdated -b '${{ env.pkg_name }}*' \
             --version ${{ matrix.version }} --user sintef --channel ${{ matrix.channel }} \
             .

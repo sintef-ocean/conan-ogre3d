@@ -1,5 +1,6 @@
 [![Linux GCC](https://github.com/sintef-ocean/conan-ogre3d/workflows/Linux%20GCC/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Linux+GCC")
 [![Windows MSVC](https://github.com/sintef-ocean/conan-ogre3d/workflows/Windows%20MSVC/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"Windows+MSVC")
+[![macOS Apple Clang](https://github.com/sintef-ocean/conan-ogre3d/workflows/macOS%20Apple%20Clang/badge.svg)](https://github.com/sintef-ocean/conan-ogre3d/actions?query=workflow%3A"macOS+Apple+Clang")
 
 [Conan.io](https://conan.io) recipe for [Ogre3D](https://www.ogre3d.org).
 
@@ -16,7 +17,7 @@
    Add *conanfile.txt*:
    ```
    [requires]
-   ogre3d/[~14.5.0]@sintef/stable
+   ogre3d/[~14.6.0]@sintef/stable
 
    [options]
    ogre3d:with_sdl=True
@@ -65,11 +66,20 @@ We have added support for component targets [EXPERIMENTAL]:
  Typically, you only need to link `Ogre3D::Components`, but if you include headers from
  any of the other features in your code, you need to link the corresponding targets.
 
+### Dear ImGui
+
+With `component_overlay_imgui=True`, ImGui is compiled into and exported by `OgreOverlay`.
+Since `14.6.1` the package also contains the imgui headers needed to use it, including
+`imgui_internal.h` (e.g. for implot), in `include/OGRE/Overlay`. Do not link `imgui::imgui`
+in addition to `Ogre3D::Components`: it is a second ImGui with a different `imconfig.h`
+(export macros, `ImDrawIdx`). The imgui package is still a visible requirement, so a
+conflicting imgui version in the dependency graph is reported.
+
 ## Package options
 
 | Option                          | Allowed values    | Default |
 |---------------------------------|-------------------|---------|
-| with_freetype                   | [True, False]     | False   |
+| with_freetype                   | [True, False]     | True    |
 | with_sdl                        | [True, False]     | True    |
 | with_qt                         | [False, "5", "6"] | False   |
 | install_samples                 | [True, False]     | False   |
@@ -79,7 +89,7 @@ We have added support for component targets [EXPERIMENTAL]:
 | bindings_python                 | [True, False]     | False   |
 | rendersystem_direct3d11         | [True, False]     | True    |
 | rendersystem_direct3d9          | [True, False]     | False   |
-| rendersystem_metal              | [True, False]     | False   |
+| rendersystem_metal (Macos)      | [True, False]     | False   |
 | rendersystem_opengl             | [True, False]     | False   |
 | rendersystem_opengl3            | [True, False]     | True    |
 | rendersystem_opengles           | [True, False]     | False   |
@@ -88,7 +98,7 @@ We have added support for component targets [EXPERIMENTAL]:
 | plugin_assimp                   | [True, False]     | True    |
 | plugin_bsp                      | [True, False]     | True    |
 | plugin_dotscene                 | [True, False]     | True    |
-| plugin_exrcodec                 | [True, False]     | True    |
+| plugin_exrcodec                 | [True, False]     | False   |
 | plugin_freeimage                | [True, False]     | False   |
 | plugin_glslang                  | [True, False]     | True    |
 | plugin_octree                   | [True, False]     | True    |
@@ -129,8 +139,12 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
 
 ## Known recipe issues
 
-  The recipe is only tested on Windows and Linux. It will yet not work for Macos,
-  Emscripten and Android, or other platforms for that matter.
+  The recipe is tested on Windows and Linux. It will yet not work for Emscripten and
+  Android, or other platforms for that matter.
+  - Macos support (arm64, from `14.6.1`) is experimental and not fully tested: the package
+    builds, plugins and rendersystems load and `Test_Ogre` passes, but rendering has not
+    been verified. Libraries are built as dylibs, not frameworks. Ogre's app bundles
+    (samples, `TestContext`) expect plugins as frameworks inside the bundle and do not run.
   - OpenGL ES dependency are system installed for Debian-based linux only
   - Currently, migration to conan v2 causes SWIG to not work: `bindings_*` options are not
     functional yet. A workaround is to install swig on your system and set modify recipe
@@ -148,10 +162,9 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
     OGRE_BITES_STATIC_PLUGINS           # TODO
     OGRE_BUILD_PLUGIN_CG                # Deprecated
     OGRE_BUILD_XSIEXPORTER              # Needs SoftImage (unsupported)
-    OGRE_BUILD_RENDERSYSTEM_METAL       # TODO for macos
     OGRE_BUILD_MSVC_MP
     OGRE_BUILD_MSVC_ZM
-    OGRE_BUILD_LIBS_AS_FRAMEWORKS
+    OGRE_BUILD_LIBS_AS_FRAMEWORKS       # Forced to false
     OGRE_CONFIG_STATIC_LINK_CRT
     OGRE_CONFIG_FILESYSTEM_UNICODE
     OGRE_CONFIG_THREADS                 # Default (3)
@@ -168,7 +181,7 @@ You may need to set environment variable `CTEST_PARALLEL_LEVEL=1` when building 
   The following tasks are on the horizon for this recipe
   - [ ] Allow static build and add option fPIC
   - [ ] Ensure package info to follow native ogre's cmake and pkgconfig find scripts
-  - [ ] Add support for Macos, Emscripten, Android, and other platforms
+  - [ ] Add support for Emscripten, Android, and other platforms
   - [ ] Rename package name to ogre and move to conan center?
 
 ## Developer Notes

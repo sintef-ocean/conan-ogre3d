@@ -79,7 +79,7 @@ class Ogre3dConan(ConanFile):
         }
 
     default_options = {
-        "with_freetype": False,
+        "with_freetype": True,  # stb_truetype fallback gets glyph advances wrong
         "with_sdl": True,
         "with_qt": False,
         "install_samples": False,
@@ -155,6 +155,11 @@ class Ogre3dConan(ConanFile):
                self.options.install_samples
 
     @property
+    def _imgui_bundled(self):
+        # imgui is compiled into OgreOverlay and its headers are packaged with Ogre
+        return self.options.component_overlay_imgui and Version(self.version) >= "14.6"
+
+    @property
     def _need_swig(self):
         return self.options.bindings_csharp \
             or self.options.bindings_java \
@@ -191,6 +196,8 @@ class Ogre3dConan(ConanFile):
         if self.settings.os != "Windows":
             del self.options.rendersystem_direct3d9
             del self.options.rendersystem_direct3d11
+        if self.settings.os != "Macos":
+            del self.options.rendersystem_metal
 
     def configure(self):
         self.options["freetype/*"].shared = False
@@ -228,7 +235,7 @@ class Ogre3dConan(ConanFile):
         if (self.options.rendersystem_opengl or
            self.options.rendersystem_opengl3 or
            self.options.rendersystem_opengles) and \
-           self.settings.os != "Windows":
+           self.settings.os == "Linux":
             self.requires(f"egl/{deps['egl']}")
         if self.options.rendersystem_opengles:
             self.output.warning("OpenGL ES requirement not handled by conan")
@@ -251,7 +258,10 @@ class Ogre3dConan(ConanFile):
         if self.options.get_safe("component_bullet", False):
             self.requires(f"bullet3/{deps['bullet3']}")  # private=False
 
-        if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+        if self._imgui_bundled:
+            # Only sources are used, consumers get imgui from OgreOverlay
+            self.requires(f"imgui/{deps['imgui']}", transitive_headers=False, transitive_libs=False)
+        elif self.options.component_overlay_imgui and Version(self.version).major >= 14:
             self.requires(f"imgui/{deps['imgui']}") # override=True if e.g. implot
 
         if self.settings.os == "Linux":
@@ -283,10 +293,13 @@ class Ogre3dConan(ConanFile):
             raise ConanInvalidConfiguration(
                 "'plugin_rsimage' needs Rust/Cargo, but was not found or too old; >=1.56.0")
 
-        if self.settings.os not in ["Windows", "Linux"]:
-            # TODO: support macos, emscripten, android, apple_ios
+        if self.settings.os not in ["Windows", "Linux", "Macos"]:
+            # TODO: support emscripten, android, apple_ios
             raise ConanInvalidConfiguration(
                 f"Recipe not yet supported for '{self.settings.os}'")
+
+        if self.settings.os == "Macos" and Version(self.version) < "14.6.1":
+            raise ConanInvalidConfiguration("Macos is supported from 14.6.1")
 
         if self.options.install_samples and \
            self.options.rendersystem_vulkan and \
@@ -333,7 +346,11 @@ class Ogre3dConan(ConanFile):
         tc.variables["OGRE_COPY_DEPENDENCIES"] = False
         tc.variables["OGRE_INSTALL_DEPENDENCIES"] = False
         tc.variables["OGRE_INSTALL_DOCS"] = False
-        tc.variables["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # Subject to change
+        if self.settings.os == "Macos":
+            tc.variables["CMAKE_INSTALL_RPATH"] = "@loader_path;@loader_path/OGRE;@loader_path/../lib"
+            tc.variables["OGRE_BUILD_LIBS_AS_FRAMEWORKS"] = False
+        else:
+            tc.variables["CMAKE_INSTALL_RPATH"] = "$ORIGIN;$ORIGIN/OGRE"  # Subject to change
         tc.variables["OGRE_WITH_FREETYPE"] = self.options.with_freetype
         if self.options.with_freetype:
             tc.cache_variables["FREETYPE_LIBRARIES"] = "Freetype::Freetype"
@@ -351,7 +368,7 @@ class Ogre3dConan(ConanFile):
         tc.variables[f"{renderers}_GLES2"] = self.options.rendersystem_opengles
         tc.variables[f"{renderers}_TINY"] = self.options.rendersystem_tiny
         tc.variables[f"{renderers}_VULKAN"] = self.options.rendersystem_vulkan
-        tc.variables[f"{renderers}_METAL"] = self.options.rendersystem_metal
+        tc.variables[f"{renderers}_METAL"] = self.options.get_safe("rendersystem_metal", False)
 
         plugins = "OGRE_BUILD_PLUGIN"
         tc.variables[f"{plugins}_CG"] = False
@@ -458,7 +475,11 @@ class Ogre3dConan(ConanFile):
         cmake.build()
 
         if self._build_testing and can_run(self):
-            cmake.test()
+            if self.settings.os == "Macos":
+                # TestContext is an app bundle expecting plugins as frameworks, which we do not build
+                self.run("ctest --output-on-failure -E TestContext", cwd=self.build_folder)
+            else:
+                cmake.test()
 
     def package(self):
         cmake = CMake(self)
@@ -469,6 +490,22 @@ class Ogre3dConan(ConanFile):
         rmdir(self, path.join(self.package_folder, "CMake"))
         rmdir(self, path.join(self.package_folder, "lib", "OGRE", "cmake"))
         rmdir(self, path.join(self.package_folder, "lib", "pkgconfig"))
+
+        if self._imgui_bundled:
+            # OgreOverlay installs imgui.h and imconfig.h, add the headers needed to use them
+            # and imgui_internal.h (e.g. for implot)
+            for pattern in ["imgui_export_headers.h", "imgui_internal.h", "imstb_*.h"]:
+                copy(self, pattern, src=path.join(self.build_folder, "imgui"),
+                     dst=path.join(self.package_folder, "include", "OGRE", "Overlay"))
+
+        if self.settings.os == "Macos":
+            # Ogre installs executables in bin/macosx (bin/debug for Debug), use bin like elsewhere
+            bin_dir = path.join(self.package_folder, "bin")
+            for sub_dir in ["macosx", "debug"]:
+                src = path.join(bin_dir, sub_dir)
+                if path.isdir(src):
+                    copy(self, "*", src=src, dst=bin_dir)
+                    rmdir(self, src)
 
     def package_info(self):
 
@@ -502,10 +539,12 @@ class Ogre3dConan(ConanFile):
         if self.settings.os == "Linux":
             comp.requires.append("xorg::xorg")
         if self.options.with_sdl:
-            comp.requires.append("sdl::sdl")
+            # Only the library: sdl::sdl includes sdl2main, which injects main() on Windows
+            comp.requires.append("sdl::libsdl2")
         if self.options.with_qt in ["5", "6"]:
             comp.requires.append("qt::qt")
         if self.options.component_overlay_imgui and Version(self.version).major >= 14:
+            # When bundled, imgui's headers and libs are not propagated to consumers
             comp.requires.append("imgui::imgui")
 
         if self.options.rendersystem_opengl or self.options.rendersystem_opengl3:
@@ -569,7 +608,7 @@ class Ogre3dConan(ConanFile):
         if self.options.component_overlay:
             comp.includedirs.append(f"{include}/Overlay")
             comp.libs.append("OgreOverlay")
-        if self.options.component_overlay_imgui:
+        if self.options.component_overlay_imgui and not self._imgui_bundled:
             comp.defines.append("IMGUI_DISABLE_OBSOLETE_KEYIO")  # not needed?
         if self.options.component_paging:
             comp.includedirs.append(f"{include}/Paging")
@@ -591,7 +630,7 @@ class Ogre3dConan(ConanFile):
         rend.libs = []
         if self.settings.os == "Windows":
             rend.libdirs.append("bin")
-        elif self.settings.os == "Linux":
+        elif self.settings.os in ["Linux", "Macos"]:
             rend.libdirs.append("lib/OGRE")
         # Render systems
         include_RS = "include/OGRE/RenderSystems"
@@ -615,12 +654,15 @@ class Ogre3dConan(ConanFile):
         if self.options.rendersystem_vulkan:
             rend.includedirs.append(f"{include_RS}/Vulkan")
             rend.libs.append("RenderSystem_Vulkan")
+        if self.options.get_safe("rendersystem_metal", False):
+            rend.includedirs.append(f"{include_RS}/Metal")
+            rend.libs.append("RenderSystem_Metal")
 
         plug.includedirs = []
         plug.libs = []
         if self.settings.os == "Windows":
             plug.libdirs.append("bin")
-        elif self.settings.os == "Linux":
+        elif self.settings.os in ["Linux", "Macos"]:
             plug.libdirs.append("lib/OGRE")
 
         # Plugins
@@ -668,7 +710,11 @@ class Ogre3dConan(ConanFile):
             rend.libs = [lib + "_d" for lib in rend.libs]
             plug.libs = [lib + "_d" for lib in plug.libs]
 
-        if self.settings.compiler in ["gcc", "clang"] \
+        # Plugins have no lib prefix, so they must be given by file name
+        if self.settings.os == "Macos":
+            rend.libs = [lib + ".dylib" for lib in rend.libs]
+            plug.libs = [lib + ".dylib" for lib in plug.libs]
+        elif self.settings.compiler in ["gcc", "clang"] \
            and self.settings.os != "Windows":
             rend.libs = [lib + ".so" for lib in rend.libs]
             plug.libs = [lib + ".so" for lib in plug.libs]
