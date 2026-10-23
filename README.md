@@ -75,6 +75,20 @@ in addition to `Ogre3D::Components`: it is a second ImGui with a different `imco
 (export macros, `ImDrawIdx`). The imgui package is still a visible requirement, so a
 conflicting imgui version in the dependency graph is reported.
 
+### Wayland (Linux)
+
+With `with_wayland=True`, Ogre's EGL window support is built for Wayland instead of X11; one
+build cannot do both. Ogre needs `externalWlDisplay` and `externalWlSurface`, e.g. from SDL's
+Wayland video driver. `wayland` is made shared, so that SDL, Ogre and Mesa's EGL use the same
+`libwayland-client`. `with_x11=False` also removes X11 from the dependency graph, by turning
+off the X11 options of `sdl`, `xkbcommon` and `pulseaudio`. The run environment sets
+`XLOCALEDIR=/usr/share/X11/locale`, since conan's `xkbcommon` has no compose files.
+
+The Ogre libraries' rpath does not include the `wayland` package, so `libwayland-client.so.0`
+is found through the conan run environment (`conanrun.sh`, `LD_LIBRARY_PATH`). Without it, the
+system `libwayland-client.so.0` is loaded instead. That works as long as there is one copy in
+the process: SDL and Mesa load it by name and get the copy that is already loaded.
+
 ## Package options
 
 | Option                          | Allowed values    | Default |
@@ -82,6 +96,8 @@ conflicting imgui version in the dependency graph is reported.
 | with_freetype                   | [True, False]     | True    |
 | with_sdl                        | [True, False]     | True    |
 | with_qt                         | [False, "5", "6"] | False   |
+| with_wayland (Linux)            | [True, False]     | False   |
+| with_x11 (Linux)                | [True, False]     | True    |
 | install_samples                 | [True, False]     | False   |
 | install_tools                   | [True, False]     | True    |
 | bindings_csharp                 | [True, False]     | False   |

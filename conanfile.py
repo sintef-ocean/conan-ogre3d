@@ -6,6 +6,7 @@ from conan.tools.scm import Version
 from conan.tools.files import get, copy, rmdir, rm, save
 from conan.tools.files import apply_conandata_patches, export_conandata_patches
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
+from conan.tools.gnu import PkgConfigDeps
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.microsoft.visual import check_min_vs, is_msvc
 from conan.tools.build import check_min_cppstd
@@ -29,6 +30,8 @@ class Ogre3dConan(ConanFile):
         "with_freetype": [True, False],
         "with_sdl": [True, False],
         "with_qt": [False, "5", "6"],
+        "with_wayland": [True, False],
+        "with_x11": [True, False],
         "install_samples": [True, False],
         "install_tools": [True, False],
         "bindings_csharp": [True, False],
@@ -82,6 +85,8 @@ class Ogre3dConan(ConanFile):
         "with_freetype": True,  # stb_truetype fallback gets glyph advances wrong
         "with_sdl": True,
         "with_qt": False,
+        "with_wayland": False,  # Wayland replaces X11 window support
+        "with_x11": True,  # False removes X11 from the dependency graph, needs with_wayland
         "install_samples": False,
         "install_tools": True,
         "bindings_csharp": False,
@@ -198,6 +203,10 @@ class Ogre3dConan(ConanFile):
             del self.options.rendersystem_direct3d11
         if self.settings.os != "Macos":
             del self.options.rendersystem_metal
+        if self.settings.os != "Linux" or Version(self.version) < "14.6.1":
+            # Wayland is tested from 14.6.1
+            del self.options.with_wayland
+            del self.options.with_x11
 
     def configure(self):
         self.options["freetype/*"].shared = False
@@ -213,6 +222,20 @@ class Ogre3dConan(ConanFile):
 
         if self.options.rendersystem_vulkan:
             self.options["qt/*"].with_vulkan = True
+
+        if self.options.get_safe("with_wayland", False):
+            # One shared libwayland-client in the process: SDL, Ogre and Mesa's EGL
+            # must share wl_display state, which static copies do not
+            self.options["wayland/*"].shared = True
+            self.options["sdl/*"].wayland = True
+            self.options["xkbcommon/*"].with_wayland = True
+
+        if not self.options.get_safe("with_x11", True):
+            for opt in ["x11", "xcursor", "xinerama", "xinput", "xrandr",
+                        "xscrnsaver", "xshape", "xvm"]:
+                setattr(self.options["sdl/*"], opt, False)
+            self.options["xkbcommon/*"].with_x11 = False
+            self.options["pulseaudio/*"].with_x11 = False
 
     def layout(self):
         cmake_layout(self, src_folder="src")
@@ -237,6 +260,8 @@ class Ogre3dConan(ConanFile):
            self.options.rendersystem_opengles) and \
            self.settings.os == "Linux":
             self.requires(f"egl/{deps['egl']}")
+        if self.options.get_safe("with_wayland", False):
+            self.requires(f"wayland/{deps['wayland']}")
         if self.options.rendersystem_opengles:
             self.output.warning("OpenGL ES requirement not handled by conan")
         if self.options.rendersystem_vulkan:
@@ -265,7 +290,8 @@ class Ogre3dConan(ConanFile):
             self.requires(f"imgui/{deps['imgui']}") # override=True if e.g. implot
 
         if self.settings.os == "Linux":
-            self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
+            if self.options.get_safe("with_x11", True):
+                self.requires(f"xorg/{deps['xorg']}")  # X11 dependencies
 
         if self.options.with_sdl or self.options.plugin_assimp or \
            self.options.plugin_exrcodec or \
@@ -297,6 +323,9 @@ class Ogre3dConan(ConanFile):
             # TODO: support emscripten, android, apple_ios
             raise ConanInvalidConfiguration(
                 f"Recipe not yet supported for '{self.settings.os}'")
+
+        if not self.options.get_safe("with_x11", True) and not self.options.with_wayland:
+            raise ConanInvalidConfiguration("'with_x11=False' requires 'with_wayland=True'")
 
         if self.settings.os == "Macos" and Version(self.version) < "14.6.1":
             raise ConanInvalidConfiguration("Macos is supported from 14.6.1")
@@ -355,6 +384,10 @@ class Ogre3dConan(ConanFile):
         if self.options.with_freetype:
             tc.cache_variables["FREETYPE_LIBRARIES"] = "Freetype::Freetype"
         tc.variables["OGRE_WITH_SDL"] = self.options.with_sdl
+        if self.options.get_safe("with_wayland") is not None:
+            tc.variables["OGRE_USE_WAYLAND"] = self.options.with_wayland
+            if not self.options.with_x11:
+                tc.cache_variables["CMAKE_DISABLE_FIND_PACKAGE_X11"] = True
         tc.variables["OGRE_WITH_QT"] = self.options.with_qt in ["5", "6"]
         if self.options.with_qt in ["5", "6"]:
             tc.variables["QT_VERSION_MAJOR"] = str(self.options.with_qt)
@@ -446,6 +479,10 @@ class Ogre3dConan(ConanFile):
         deps.set_property("freeimage", "cmake_file_name", "FreeImage")
         deps.generate()
 
+        if self.options.get_safe("with_wayland", False):
+            # Ogre finds wayland-client, wayland-egl and egl with pkg-config
+            PkgConfigDeps(self).generate()
+
         if self.options.component_overlay_imgui and Version(self.version).major >= 14:
             # copy imgui sources, misc and headers
             imgui_dir = path.join(self.build_folder, "imgui")
@@ -536,7 +573,7 @@ class Ogre3dConan(ConanFile):
             comp.requires.append("freetype::freetype")
         if self.options.component_bullet:
             comp.requires.append("bullet3::bullet3")
-        if self.settings.os == "Linux":
+        if self.settings.os == "Linux" and self.options.get_safe("with_x11", True):
             comp.requires.append("xorg::xorg")
         if self.options.with_sdl:
             # Only the library: sdl::sdl includes sdl2main, which injects main() on Windows
@@ -554,6 +591,11 @@ class Ogre3dConan(ConanFile):
             self.options.rendersystem_opengles) and \
            self.settings.os == "Linux":
             rend.requires.append("egl::egl")
+        if self.options.get_safe("with_wayland", False):
+            rend.requires.append("wayland::wayland-client")
+            rend.requires.append("wayland::wayland-egl")
+            # conan's xkbcommon has no locale data, use the system compose files
+            self.runenv_info.define("XLOCALEDIR", "/usr/share/X11/locale")
         if self.options.rendersystem_tiny and self.settings.os == "Linux":
             if self.settings.compiler == "gcc":
                 rend.system_libs.append("gomp")
