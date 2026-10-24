@@ -1,0 +1,25 @@
+From 29fadece7e66827e5eb206ff4aa096bd252686b3 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Wed, 8 Apr 2026 15:03:50 +0200
+Subject: [PATCH 4/5] Fix c++20 issues
+
+---
+ Samples/Browser/include/SampleBrowser.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Samples/Browser/include/SampleBrowser.h b/Samples/Browser/include/SampleBrowser.h
+index 71e090b..d8dc968 100644
+--- a/Samples/Browser/include/SampleBrowser.h
++++ b/Samples/Browser/include/SampleBrowser.h
+@@ -390,7 +390,7 @@ namespace OgreBites
+                 ImGui::SetNextWindowPos(ImVec2(0, center.y), ImGuiCond_Always, ImVec2(0.f, 0.5f));
+             else
+                 ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+-            ImGui::Begin(u8"\uf013 Configuration", NULL, flags);
++            ImGui::Begin("\uf013 Configuration", NULL, flags);
+             Ogre::DrawRenderingSettings(mNextRenderer);
+             ImGui::End();
+ #endif
+-- 
+2.47.3
+

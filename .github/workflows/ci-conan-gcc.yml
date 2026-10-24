@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [14.5.2, 14.6.1]
+        version: [14.5.2, 14.6.2]
         configs: ["default", "fhsim"]
         build_type: [Debug, Release]
         profile: [gcc]
