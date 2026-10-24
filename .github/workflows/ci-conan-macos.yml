@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [14.6.1]
+        version: [14.6.2]
         build_type: [Debug, Release]
         profile: [apple_clang]
         compiler_version: [17]

@@ -1,0 +1,41 @@
+From 7ce0f9919e6e73dc2131d23af6f703cc435fd040 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Tue, 19 May 2026 13:05:27 +0200
+Subject: [PATCH 5/5] Add optional imgui 32-bit indices
+
+---
+ CMake/Templates/imconfig.h | 6 +++++-
+ CMakeLists.txt             | 1 +
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/CMake/Templates/imconfig.h b/CMake/Templates/imconfig.h
+index 7f6a28c..6ab13e9 100644
+--- a/CMake/Templates/imconfig.h
++++ b/CMake/Templates/imconfig.h
+@@ -2,4 +2,8 @@
+ #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+ #include <OgreOverlayPrerequisites.h>
+ #define IMGUI_API _OgreOverlayExport
+-#cmakedefine IMGUI_ENABLE_FREETYPE
+\ No newline at end of file
++#cmakedefine IMGUI_ENABLE_FREETYPE
++#cmakedefine OGRE_IMGUI_USE_32BIT_INDICES
++#ifdef OGRE_IMGUI_USE_32BIT_INDICES
++#define ImDrawIdx unsigned int
++#endif
+\ No newline at end of file
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c97fb41..9e8caf2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -333,6 +333,7 @@ option(OGRE_WITH_QT "Build with QT support" FALSE)
+ option(OGRE_WITH_SDL "Build with SDL2 support" FALSE)
+ 
+ cmake_dependent_option(OGRE_BUILD_COMPONENT_OVERLAY_IMGUI "Include dear imgui in Overlays" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
++cmake_dependent_option(OGRE_IMGUI_USE_32BIT_INDICES "Use 32-bit indices for ImGui" FALSE "OGRE_BUILD_COMPONENT_OVERLAY_IMGUI" FALSE)
+ 
+ cmake_dependent_option(OGRE_BUILD_COMPONENT_BITES "Build OgreBites component" TRUE "OGRE_BUILD_COMPONENT_OVERLAY" FALSE)
+ cmake_dependent_option(OGRE_BUILD_COMPONENT_BULLET "Build Bullet physics component" TRUE "BULLET_FOUND" FALSE)
+-- 
+2.47.3
+

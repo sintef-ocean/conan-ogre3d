@@ -1,0 +1,27 @@
+From eaf6122b7cc2808f512581f9fd061206cb2dc210 Mon Sep 17 00:00:00 2001
+From: Joakim Haugen <joakim.haugen@sintef.no>
+Date: Wed, 8 Apr 2026 12:22:52 +0200
+Subject: [PATCH 1/5] Set rpath with origin variants
+
+---
+ CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6241132..e91f2a4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -430,8 +430,8 @@ mark_as_advanced(
+ ###################################################################
+ include(ConfigureBuild)
+ 
+-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_PREFIX}/${OGRE_LIB_DIRECTORY}")
+-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
++set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};$ORIGIN;$ORIGIN/..;$ORIGION/../lib/OGRE;$ORIGIN/../..")
++set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+ 
+ ###################################################################
+ # disable way too common compiler warnings on project level
+-- 
+2.47.3
+
