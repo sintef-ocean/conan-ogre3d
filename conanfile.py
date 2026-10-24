@@ -229,6 +229,8 @@ class Ogre3dConan(ConanFile):
             self.options["wayland/*"].shared = True
             self.options["sdl/*"].wayland = True
             self.options["xkbcommon/*"].with_wayland = True
+            # SDL dlopens xkbcommon by its library file name, which must not be a .a
+            self.options["xkbcommon/*"].shared = True
 
         if not self.options.get_safe("with_x11", True):
             for opt in ["x11", "xcursor", "xinerama", "xinput", "xrandr",
