@@ -80,7 +80,8 @@ conflicting imgui version in the dependency graph is reported.
 With `with_wayland=True`, Ogre's EGL window support is built for Wayland instead of X11; one
 build cannot do both. Ogre needs `externalWlDisplay` and `externalWlSurface`, e.g. from SDL's
 Wayland video driver. `wayland` is made shared, so that SDL, Ogre and Mesa's EGL use the same
-`libwayland-client`. `with_x11=False` also removes X11 from the dependency graph, by turning
+`libwayland-client`. `xkbcommon` is made shared too, since SDL loads it at run time by its
+library file name. `with_x11=False` also removes X11 from the dependency graph, by turning
 off the X11 options of `sdl`, `xkbcommon` and `pulseaudio`. The run environment sets
 `XLOCALEDIR=/usr/share/X11/locale`, since conan's `xkbcommon` has no compose files.
 
